@@ -19,7 +19,7 @@ const verticalSchema = z.enum(['flight', 'hotel', 'home', 'visa', 'esim', 'tour'
 const tourStatusSchema = z.enum(['draft', 'published', 'archived']);
 const tourInputSchema = z.object({ slug: z.string().trim().min(3).max(160).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), title: z.string().trim().min(3).max(180), country: z.string().trim().min(2).max(80), tourType: z.string().trim().min(2).max(80), destinations: z.array(z.string().trim().min(1).max(80)).min(1).max(20), durationDays: z.number().int().positive().max(60), durationNights: z.number().int().nonnegative().max(59), description: z.string().max(3000).default(''), imageUrl: z.string().max(500).default(''), priceBdt: z.number().nonnegative().max(100000000), status: tourStatusSchema.default('draft'), featured: z.boolean().default(false) });
 const tourPatchSchema = tourInputSchema.partial();
-const identityRequest = z.object({ identity: z.string().min(3).max(160), fullName: z.string().trim().min(2).max(100).optional() });
+const identityRequest = z.object({ identity: z.string().min(3).max(160), fullName: z.string().trim().min(2).max(100).optional(), adminOnly: z.boolean().default(false) });
 const verifyOtpRequest = z.object({ challengeId: z.string().uuid(), code: z.string().regex(/^\d{6}$/, 'OTP must be a 6 digit code') });
 const bookingRequest = z.object({ vertical: verticalSchema, payload: z.unknown() });
 const paymentRequest = z.object({ bookingId: z.string().uuid(), amount: z.number().positive().max(10_000_000), currency: z.string().length(3).default('BDT') });
@@ -66,6 +66,7 @@ export function buildApp() {
   app.post('/api/v1/auth/request-otp', rateLimit('otp', 5, 300), async (req, res) => {
     const input = toInput(identityRequest, req.body);
     const normalized = normalizeIdentity(input.identity);
+    if (input.adminOnly && !config.adminIdentities.includes(normalized.identity)) throw new AppError(403, 'ADMIN_NOT_WHITELISTED', 'This identity is not authorized for admin login');
     const recent = await store.countRecentOtpRequests(normalized.identity, new Date(Date.now() - 60_000));
     assert(recent < 3, 429, 'OTP_THROTTLED', 'Please wait before requesting another code');
     const code = String(randomInt(100000, 1_000_000));
@@ -89,7 +90,7 @@ export function buildApp() {
     const isConfiguredAdmin = config.adminIdentities.includes(challenge.identity);
     let user = await store.findUserByIdentity(challenge.identity);
     if (!user) user = await store.createUser({ identity: challenge.identity, channel: challenge.channel, role: isConfiguredAdmin ? 'admin' : 'customer' });
-    else if (isConfiguredAdmin && user.role !== 'admin') user = (await store.setUserRole(user.id, 'admin')) ?? user;
+    else if (isConfiguredAdmin && !['admin', 'super_admin'].includes(user.role)) user = (await store.setUserRole(user.id, 'admin')) ?? user;
     const session = await issueSession(store, user, clientMeta(req));
     setAuthCookies(res, session.accessToken, session.refreshToken);
     await store.audit('auth.login', { ...clientMeta(req), userId: user.id, metadata: { channel: challenge.channel } });

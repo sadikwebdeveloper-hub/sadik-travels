@@ -15,14 +15,15 @@ $('#adminSendOtp').addEventListener('click', async () => {
   if (!identity) { toast('Enter an admin mobile number or email.', 'error'); return; }
   const button = $('#adminSendOtp'); setLoading(button, true);
   try {
-    const response = await api('/api/v1/auth/request-otp', { method: 'POST', body: JSON.stringify({ identity }) });
+    const response = await api('/api/v1/auth/request-otp', { method: 'POST', body: JSON.stringify({ identity, adminOnly: true }) });
     otpChallengeId = response.challengeId;
     $('#adminOtpStep').hidden = false;
     $('#adminAuthMessage').textContent = response.devCode ? `Development code: ${response.devCode}` : `Code sent to ${response.maskedDestination}.`;
     $('#adminOtp').focus();
   } catch (error) {
-    if (error.code === 'SMS_NOT_CONFIGURED') toast('BulkSMSBD is not configured. Add BULKSMSBD_API_KEY and BULKSMSBD_SENDER_ID in Render Environment, then redeploy.', 'error');
-    else if (error.code === 'EMAIL_NOT_CONFIGURED') toast('SMTP email is not configured. Add SMTP settings in Render Environment, then redeploy.', 'error');
+    if (error.code === 'ADMIN_NOT_WHITELISTED') toast('This identity is not in ADMIN_IDENTITIES. Add the exact phone/email in Render or .env, then restart.', 'error');
+    else if (error.code === 'SMS_NOT_CONFIGURED') toast('SMS gateway is not configured. Add the gateway settings, then redeploy.', 'error');
+    else if (error.code === 'EMAIL_NOT_CONFIGURED') toast('SMTP email is not configured. Add SMTP settings in Render or .env, then redeploy.', 'error');
     else toast(error.message || 'Unable to send verification code.', 'error');
   } finally { setLoading(button, false); }
 });
@@ -30,7 +31,7 @@ $('#adminLoginForm').addEventListener('submit', async event => {
   event.preventDefault();
   if (!otpChallengeId) { toast('Request an OTP first.', 'error'); return; }
   const button = event.submitter || $('#adminLoginForm button[type="submit"]'); setLoading(button, true);
-  try { await api('/api/v1/auth/verify-otp', { method: 'POST', body: JSON.stringify({ challengeId: otpChallengeId, code: $('#adminOtp').value.trim() }) }); await loadWorkspace(); }
+  try { const response = await api('/api/v1/auth/verify-otp', { method: 'POST', body: JSON.stringify({ challengeId: otpChallengeId, code: $('#adminOtp').value.trim() }) }); if (!['admin', 'manager', 'super_admin'].includes(response.user?.role)) { await api('/api/v1/auth/logout', { method: 'POST' }).catch(() => undefined); throw new Error('OTP verified, but this account is not an admin. Add the identity to ADMIN_IDENTITIES and restart the server.'); } await loadWorkspace(); }
   catch (error) { toast(error.message || 'Admin verification failed.', 'error'); }
   finally { setLoading(button, false); }
 });

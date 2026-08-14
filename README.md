@@ -96,6 +96,10 @@ Admin users authenticate with the same OTP flow and can create, edit, publish, d
 
 Admin messages can be delivered as website notifications, SMS, or email. SMS uses the BulkSMSBD gateway configured with `BULKSMSBD_API_URL`, `BULKSMSBD_API_KEY`, and `BULKSMSBD_SENDER_ID`; email uses SMTP settings in `backend/.env.example`.
 
+## Split hosting
+
+For Netlify frontend + Vercel backend deployment, follow `SPLIT_HOSTING.md`. The included `netlify.toml` proxies `/api/*` to the Vercel backend so authentication cookies remain same-origin.
+
 ## Production
 
 The API is production-oriented but live bookings, payments, messaging, and supplier inventory require real provider credentials and contracts. Production configuration refuses unsafe values such as memory storage, echoed OTPs, insecure cookies, missing MongoDB, missing Redis, missing BulkSMSBD credentials, or missing SMTP settings.

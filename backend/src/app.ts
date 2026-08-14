@@ -222,10 +222,12 @@ export function buildApp() {
     res.status(201).json({ ticket: { id: ticket.id, status: ticket.status, createdAt: ticket.createdAt } });
   });
 
-  // Serve the cloned UI and the protected-by-API admin shell from the same origin.
-  app.get('/admin', (_req, res) => res.sendFile(path.join(config.publicDir, 'admin.html')));
-  app.use(express.static(config.publicDir, { index: 'index.html', maxAge: config.isProduction ? '1h' : 0 }));
-  app.get(/^(?!\/api\/|\/healthz$|\/readyz$).*/, (_req, res) => res.sendFile(path.join(config.publicDir, 'index.html')));
+  // Serve the UI only when this process is the combined local/Docker app. Vercel can run API-only.
+  if (config.serveStatic) {
+    app.get('/admin', (_req, res) => res.sendFile(path.join(config.publicDir, 'admin.html')));
+    app.use(express.static(config.publicDir, { index: 'index.html', maxAge: config.isProduction ? '1h' : 0 }));
+    app.get(/^(?!\/api\/|\/healthz$|\/readyz$).*/, (_req, res) => res.sendFile(path.join(config.publicDir, 'index.html')));
+  }
   app.use(notFound);
   app.use((error: unknown, req: Request, res: Response, _next: NextFunction) => {
     if (res.headersSent) return;

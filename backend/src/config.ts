@@ -23,6 +23,8 @@ export const config = {
   refreshTokenTtl: env('REFRESH_TOKEN_TTL', '30d'),
   cookieDomain: env('COOKIE_DOMAIN') || undefined,
   cookieSecure: isTrue(process.env.COOKIE_SECURE, false),
+  cookieSameSite: env('COOKIE_SAMESITE', 'lax') as 'lax' | 'strict' | 'none',
+  serveStatic: isTrue(process.env.SERVE_STATIC, true),
   adminIdentities: env('ADMIN_IDENTITIES').split(',').map(normalizeAdminIdentity).filter(Boolean),
   bulkSmsApiUrl: env('BULKSMSBD_API_URL', 'https://bulksmsbd.net/api/smsapi'),
   bulkSmsApiKey: env('BULKSMSBD_API_KEY'),
@@ -56,7 +58,9 @@ export function validateConfig() {
     if (config.paymentMode !== 'live' || !config.paymentBaseUrl || !config.paymentApiKey || !config.paymentWebhookSecret) throw new Error('Production requires a live payment provider adapter and webhook secret');
     if (!config.redisUrl) throw new Error('Production requires REDIS_URL for distributed rate limiting');
     if (config.devOtpEcho) throw new Error('DEV_OTP_ECHO must be false in production');
+    if (!['lax', 'strict', 'none'].includes(config.cookieSameSite)) throw new Error('COOKIE_SAMESITE must be lax, strict, or none');
     if (!config.cookieSecure) throw new Error('COOKIE_SECURE must be true in production');
+    if (config.cookieSameSite === 'none' && !config.cookieSecure) throw new Error('COOKIE_SAMESITE=none requires COOKIE_SECURE=true');
     if (!config.appOrigin.startsWith('https://')) throw new Error('APP_ORIGIN must use HTTPS in production');
     if (config.corsOrigins.some(origin => origin === '*')) throw new Error('Wildcard CORS is not allowed in production');
     if (config.corsOrigins.some(origin => !origin.startsWith('https://'))) throw new Error('CORS_ORIGINS must use HTTPS in production');

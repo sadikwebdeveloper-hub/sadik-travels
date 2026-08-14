@@ -133,6 +133,10 @@ npm run build
 # Tour packages are created and edited through /admin; no demo rows are seeded
 ```
 
+## Split deployment
+
+`SPLIT_HOSTING.md` documents Netlify frontend + Vercel backend deployment, the Netlify same-origin API proxy, MongoDB Atlas, and required environment variables.
+
 ## Production requirements
 
 Before production deployment, configure:

@@ -81,14 +81,14 @@ export async function verifyToken(token: string, expectedType: 'access' | 'refre
 }
 
 export function cookieOptions(maxAge: number) {
-  return { httpOnly: true, secure: config.cookieSecure, sameSite: 'lax' as const, domain: config.cookieDomain, path: '/', maxAge };
+  return { httpOnly: true, secure: config.cookieSecure, sameSite: config.cookieSameSite, domain: config.cookieDomain, path: '/', maxAge };
 }
 export const setAuthCookies = (res: any, accessToken: string, refreshToken: string) => {
   res.cookie(ACCESS_COOKIE, accessToken, cookieOptions(ttlMs(config.accessTokenTtl)));
   res.cookie(REFRESH_COOKIE, refreshToken, cookieOptions(ttlMs(config.refreshTokenTtl)));
 };
 export const clearAuthCookies = (res: any) => {
-  const options = { httpOnly: true, secure: config.cookieSecure, sameSite: 'lax' as const, domain: config.cookieDomain, path: '/' };
+  const options = { httpOnly: true, secure: config.cookieSecure, sameSite: config.cookieSameSite, domain: config.cookieDomain, path: '/' };
   res.clearCookie(ACCESS_COOKIE, options); res.clearCookie(REFRESH_COOKIE, options);
 };
 

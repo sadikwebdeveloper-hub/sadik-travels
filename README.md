@@ -1,111 +1,103 @@
-# Sadik Travels website + MongoDB backend
+# Sadik Travels
 
-This project contains the Sadik Travels-style travel storefront, the Go Get Tour catalogue, and a separate Node.js/TypeScript backend in `backend/`.
+Single-project Node.js travel platform for Sadik Travels. The frontend, Express backend, SQLite database layer, admin console, authentication, Go Get Tour catalogue, and notifications run from one folder.
 
-## Run the full app
+## Run on Windows 11 or locally
 
-```bash
-cd backend
-cp .env.example .env
+```powershell
 npm install
+Copy-Item .env.example .env
 npm run dev
 ```
-
-Open `http://localhost:8787`.
-
-The backend serves the UI and API from one origin. The browser uses the shared `api.js` client for authentication, search, tour results, bookings, payments, account actions, and admin requests.
-
-> The default `.env.example` uses MongoDB. The backend does not seed demo tours or return fake travel/payment results; real records are created through the admin console and live provider adapters.
-
-## Folder structure
-
-```text
-/
-├── index.html                 # Sadik Travels storefront
-├── styles.css                 # Storefront styles
-├── app.js                    # Storefront interactions
-├── api.js                    # Shared same-origin API client
-├── admin.html                # Go Get Tour admin console
-├── admin.css
-├── admin.js
-├── assets/                   # Local images and fonts
-└── backend/
-    ├── src/                  # Express + TypeScript API
-    │   ├── app.ts
-    │   ├── index.ts
-    │   ├── store.ts          # MongoDB/Mongoose store + memory preview store
-    │   ├── security.ts       # OTP, JWT and secure cookies
-    │   ├── providers.ts      # Travel, messaging and payment adapters
-    │   ├── middleware.ts
-    │   └── rate-limit.ts
-    ├── package.json
-    ├── .env.example
-    ├── Dockerfile
-    └── docker-compose.yml
-```
-
-## MongoDB
-
-Set:
-
-```env
-DATA_MODE=mongodb
-MONGODB_URI=mongodb://127.0.0.1:27017/sadik_travels
-```
-
-Mongoose creates the collections and indexes used by:
-
-- Users and admin roles
-- OTP challenges
-- Sessions
-- Bookings
-- Payments
-- Support tickets
-- Tour packages
-- Audit logs
-
-Tour packages are not seeded. Create and manage every package through the admin console at `/admin`.
-
-## Go Get Tour
-
-The storefront includes a tour search route compatible with:
-
-```text
-/search?type=tour&destination=Bangladesh&tour_type=Family+Tour
-```
-
-Features include destination/type/budget filters, sorting, package cards, duration/location badges, details, login-required tour booking, payment intent creation, and a URL-driven results page.
-
-## Admin
 
 Open:
 
 ```text
+http://localhost:8787
 http://localhost:8787/admin
 ```
 
-Add a normalized admin identity in `backend/.env`:
+Use `DATA_MODE` no longer; SQLite is the only database layer. Configure:
 
 ```env
+SQLITE_PATH=./data/sadik.sqlite
 ADMIN_IDENTITIES=01713000000
+DEV_OTP_ECHO=true
 ```
 
-Admin users authenticate with the same OTP flow and can create, edit, publish, draft, feature, search, and archive tour packages.
+`DEV_OTP_ECHO=true` is only for local development when BulkSMSBD is not configured. Use `false` in production.
 
-## Notifications and SMS
+## Project structure
 
-Admin messages can be delivered as website notifications, SMS, or email. SMS uses the BulkSMSBD gateway configured with `BULKSMSBD_API_URL`, `BULKSMSBD_API_KEY`, and `BULKSMSBD_SENDER_ID`; email uses SMTP settings in `backend/.env.example`.
+```text
+/
+├── index.html              # Sadik Travels storefront
+├── styles.css
+├── app.js
+├── api.js                  # Shared browser API client
+├── admin.html              # Admin console
+├── admin.css
+├── admin.js
+├── src/                    # Node.js + TypeScript backend
+│   ├── app.ts
+│   ├── index.ts
+│   ├── store.ts            # SQLite database and repository methods
+│   ├── providers.ts        # Travel, payment, SMS and email providers
+│   ├── security.ts
+│   ├── middleware.ts
+│   └── rate-limit.ts
+├── package.json
+├── .env.example
+└── render.yaml
+```
 
-## Split hosting
+## Data
 
-For Netlify frontend + Vercel backend deployment, follow `SPLIT_HOSTING.md`. The included `netlify.toml` proxies `/api/*` to the Vercel backend so authentication cookies remain same-origin.
+SQLite creates its tables automatically on startup. There are no demo tour rows or fake provider results. Create all Go Get Tour packages through `/admin`.
 
-## Production
+For Render, use a persistent disk and set:
 
-The API is production-oriented but live bookings, payments, messaging, and supplier inventory require real provider credentials and contracts. Production configuration refuses unsafe values such as memory storage, echoed OTPs, insecure cookies, missing MongoDB, missing Redis, missing BulkSMSBD credentials, or missing SMTP settings.
+```env
+SQLITE_PATH=/var/data/sadik.sqlite
+```
 
-See:
+Without a persistent disk, SQLite data is lost whenever the Render service is redeployed or restarted.
 
-- `backend/PRODUCTION.md`
-- `backend/API.md`
-- `backend/.env.example`
+## Render deployment
+
+This project includes `render.yaml`.
+
+Recommended Render settings:
+
+```text
+Build command: npm ci && npm run build
+Start command: npm start
+Health check: /healthz
+```
+
+Set the required environment variables in Render, including:
+
+- `SQLITE_PATH=/var/data/sadik.sqlite`
+- `JWT_SECRET`
+- `ADMIN_IDENTITIES`
+- `BULKSMSBD_API_KEY`
+- `BULKSMSBD_SENDER_ID`
+- SMTP settings
+- Live travel provider credentials
+- Live payment provider credentials
+
+The Render service serves both frontend and backend from the same origin, so no CORS or separate frontend server is required.
+
+## Notifications
+
+Admin users can send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
+
+SMS uses BulkSMSBD. Email uses SMTP.
+
+## Checks
+
+```powershell
+npm run typecheck
+npm run build
+npm audit
+```

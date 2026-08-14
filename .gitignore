@@ -1,17 +1,13 @@
-# Dependencies and build output
 node_modules/
-backend/node_modules/
 dist/
-backend/dist/
-
-# Environment and secrets
 .env
 .env.*
 !.env.example
-backend/.env
-
-# Logs and local caches
-*.log
+data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 .npm/
 uploads/
+*.log
 .DS_Store

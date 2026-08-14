@@ -1,0 +1,109 @@
+import Database from 'better-sqlite3';
+import fs from 'node:fs';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { config } from './config.js';
+
+export type Channel = 'sms' | 'email';
+export type User = { id: string; phone?: string; email?: string; fullName?: string; status: 'active' | 'blocked' | 'pending'; role: 'customer' | 'manager' | 'admin'; createdAt: string; updatedAt: string };
+export type Tour = { id: string; slug: string; title: string; country: string; tourType: string; destinations: string[]; durationDays: number; durationNights: number; description: string; imageUrl: string; priceBdt: number; status: 'draft' | 'published' | 'archived'; featured: boolean; createdBy?: string; createdAt: string; updatedAt: string };
+export type TourFilters = { q?: string; country?: string; tourType?: string; status?: Tour['status'] | 'all'; maxPrice?: number; sort?: 'newest' | 'price_asc' | 'price_desc' };
+export type CreateTour = Omit<Tour, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateTour = Partial<Omit<CreateTour, 'createdBy'>>;
+export type OtpChallenge = { id: string; identity: string; channel: Channel; codeHash: string; attempts: number; maxAttempts: number; expiresAt: string; consumedAt?: string; requestIp?: string; createdAt: string };
+export type Session = { id: string; userId: string; refreshJti: string; userAgent?: string; ip?: string; expiresAt: string; revokedAt?: string; createdAt: string };
+export type Booking = { id: string; userId: string; vertical: 'flight' | 'hotel' | 'home' | 'visa' | 'esim' | 'tour'; status: 'pending' | 'confirmed' | 'cancelled' | 'failed'; providerRef?: string; request: unknown; response?: unknown; createdAt: string; updatedAt: string };
+export type Payment = { id: string; bookingId: string; userId: string; provider: string; amount: number; currency: string; status: 'created' | 'pending' | 'paid' | 'failed' | 'refunded'; transactionRef?: string; providerPayload?: unknown; createdAt: string; updatedAt: string };
+export type SupportTicket = { id: string; userId?: string; name: string; mobile: string; email: string; subject: string; status: 'open' | 'pending' | 'closed'; createdAt: string; updatedAt: string };
+export type Notification = { id: string; userId: string; title: string; message: string; channels: ('in_app' | 'sms' | 'email')[]; readAt?: string; createdAt: string };
+
+type CreateUser = { identity: string; channel: Channel; fullName?: string; role?: User['role'] };
+type CreateOtp = Omit<OtpChallenge, 'createdAt'>;
+type CreateSession = Omit<Session, 'createdAt'>;
+type CreateBooking = { userId: string; vertical: Booking['vertical']; request: unknown; status?: Booking['status'] };
+type CreatePayment = { bookingId: string; userId: string; provider: string; amount: number; currency: string; status?: Payment['status'] };
+type CreateTicket = Omit<SupportTicket, 'id' | 'createdAt' | 'updatedAt' | 'status'> & { status?: SupportTicket['status'] };
+type CreateNotification = Omit<Notification, 'id' | 'createdAt'>;
+
+type Row = Record<string, any>;
+const now = () => new Date().toISOString();
+const json = (value: unknown) => JSON.stringify(value ?? null);
+const parse = <T>(value: unknown, fallback: T): T => { try { return value ? JSON.parse(String(value)) as T : fallback; } catch { return fallback; } };
+const userFromRow = (r: Row): User => ({ id: r.id, phone: r.phone ?? undefined, email: r.email ?? undefined, fullName: r.full_name ?? undefined, status: r.status, role: r.role ?? 'customer', createdAt: r.created_at, updatedAt: r.updated_at });
+const otpFromRow = (r: Row): OtpChallenge => ({ id: r.id, identity: r.identity, channel: r.channel, codeHash: r.code_hash, attempts: r.attempts, maxAttempts: r.max_attempts, expiresAt: r.expires_at, consumedAt: r.consumed_at ?? undefined, requestIp: r.request_ip ?? undefined, createdAt: r.created_at });
+const sessionFromRow = (r: Row): Session => ({ id: r.id, userId: r.user_id, refreshJti: r.refresh_jti, userAgent: r.user_agent ?? undefined, ip: r.ip ?? undefined, expiresAt: r.expires_at, revokedAt: r.revoked_at ?? undefined, createdAt: r.created_at });
+const bookingFromRow = (r: Row): Booking => ({ id: r.id, userId: r.user_id, vertical: r.vertical, status: r.status, providerRef: r.provider_ref ?? undefined, request: parse(r.request, {}), response: r.response ? parse(r.response, {}) : undefined, createdAt: r.created_at, updatedAt: r.updated_at });
+const paymentFromRow = (r: Row): Payment => ({ id: r.id, bookingId: r.booking_id, userId: r.user_id, provider: r.provider, amount: Number(r.amount), currency: r.currency, status: r.status, transactionRef: r.transaction_ref ?? undefined, providerPayload: r.provider_payload ? parse(r.provider_payload, {}) : undefined, createdAt: r.created_at, updatedAt: r.updated_at });
+const ticketFromRow = (r: Row): SupportTicket => ({ id: r.id, userId: r.user_id ?? undefined, name: r.name, mobile: r.mobile, email: r.email, subject: r.subject, status: r.status, createdAt: r.created_at, updatedAt: r.updated_at });
+const tourFromRow = (r: Row): Tour => ({ id: r.id, slug: r.slug, title: r.title, country: r.country, tourType: r.tour_type, destinations: parse<string[]>(r.destinations, []), durationDays: Number(r.duration_days), durationNights: Number(r.duration_nights), description: r.description ?? '', imageUrl: r.image_url ?? '', priceBdt: Number(r.price_bdt), status: r.status, featured: Boolean(r.featured), createdBy: r.created_by ?? undefined, createdAt: r.created_at, updatedAt: r.updated_at });
+const notificationFromRow = (r: Row): Notification => ({ id: r.id, userId: r.user_id, title: r.title, message: r.message, channels: parse<Notification['channels']>(r.channels, ['in_app']), readAt: r.read_at ?? undefined, createdAt: r.created_at });
+
+export interface Store {
+  health(): Promise<boolean>; close(): void;
+  findUserByIdentity(identity: string): Promise<User | undefined>; findUserById(id: string): Promise<User | undefined>; listUsers(): Promise<User[]>; createUser(input: CreateUser): Promise<User>; setUserRole(id: string, role: User['role']): Promise<User | undefined>;
+  createOtp(input: CreateOtp): Promise<OtpChallenge>; findOtp(id: string): Promise<OtpChallenge | undefined>; incrementOtpAttempts(id: string): Promise<OtpChallenge | undefined>; consumeOtp(id: string): Promise<void>; countRecentOtpRequests(identity: string, since: Date): Promise<number>;
+  createSession(input: CreateSession): Promise<Session>; findSessionById(id: string): Promise<Session | undefined>; findSessionByRefreshJti(jti: string): Promise<Session | undefined>; revokeSession(id: string): Promise<void>;
+  createBooking(input: CreateBooking): Promise<Booking>; updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>): Promise<Booking | undefined>; findBooking(id: string, userId?: string): Promise<Booking | undefined>; listBookings(userId: string): Promise<Booking[]>;
+  listTours(filters?: TourFilters): Promise<Tour[]>; findTour(idOrSlug: string): Promise<Tour | undefined>; createTour(input: CreateTour): Promise<Tour>; updateTour(id: string, patch: UpdateTour): Promise<Tour | undefined>; archiveTour(id: string): Promise<Tour | undefined>; tourStats(): Promise<{ total: number; published: number; draft: number; archived: number }>;
+  createPayment(input: CreatePayment): Promise<Payment>; updatePayment(id: string, patch: Partial<Pick<Payment, 'status' | 'transactionRef' | 'providerPayload'>>): Promise<Payment | undefined>;
+  createSupportTicket(input: CreateTicket): Promise<SupportTicket>; createNotification(input: CreateNotification): Promise<Notification>; listNotifications(userId: string): Promise<Notification[]>; markNotificationRead(id: string, userId: string): Promise<Notification | undefined>;
+  audit(action: string, input: { userId?: string; ip?: string; userAgent?: string; metadata?: unknown }): Promise<void>;
+}
+
+const schema = `
+PRAGMA foreign_keys = ON;
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, phone TEXT UNIQUE, email TEXT UNIQUE, full_name TEXT, status TEXT NOT NULL DEFAULT 'active', role TEXT NOT NULL DEFAULT 'customer', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS otp_challenges (id TEXT PRIMARY KEY, identity TEXT NOT NULL, channel TEXT NOT NULL, code_hash TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL DEFAULT 5, expires_at TEXT NOT NULL, consumed_at TEXT, request_ip TEXT, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS otp_identity_created_idx ON otp_challenges(identity, created_at);
+CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, refresh_jti TEXT UNIQUE NOT NULL, user_agent TEXT, ip TEXT, expires_at TEXT NOT NULL, revoked_at TEXT, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS sessions_user_idx ON sessions(user_id, created_at);
+CREATE TABLE IF NOT EXISTS bookings (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, vertical TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', provider_ref TEXT, request TEXT NOT NULL, response TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS bookings_user_idx ON bookings(user_id, created_at);
+CREATE TABLE IF NOT EXISTS tours (id TEXT PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL, country TEXT NOT NULL, tour_type TEXT NOT NULL, destinations TEXT NOT NULL, duration_days INTEGER NOT NULL, duration_nights INTEGER NOT NULL, description TEXT NOT NULL DEFAULT '', image_url TEXT NOT NULL DEFAULT '', price_bdt REAL NOT NULL, status TEXT NOT NULL DEFAULT 'draft', featured INTEGER NOT NULL DEFAULT 0, created_by TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS tours_filter_idx ON tours(status, country, tour_type, price_bdt);
+CREATE TABLE IF NOT EXISTS payments (id TEXT PRIMARY KEY, booking_id TEXT NOT NULL, user_id TEXT NOT NULL, provider TEXT NOT NULL, amount REAL NOT NULL, currency TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'created', transaction_ref TEXT, provider_payload TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS support_tickets (id TEXT PRIMARY KEY, user_id TEXT, name TEXT NOT NULL, mobile TEXT NOT NULL, email TEXT NOT NULL, subject TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, channels TEXT NOT NULL, read_at TEXT, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id, created_at);
+CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, action TEXT NOT NULL, ip TEXT, user_agent TEXT, metadata TEXT, created_at TEXT NOT NULL);
+`;
+
+export class SQLiteStore implements Store {
+  private db: Database.Database;
+  constructor() { fs.mkdirSync(path.dirname(config.sqlitePath), { recursive: true }); this.db = new Database(config.sqlitePath); this.db.pragma('journal_mode = WAL'); this.db.pragma('foreign_keys = ON'); this.db.exec(schema); }
+  async health() { this.db.prepare('SELECT 1').get(); return true; }
+  close() { this.db.close(); }
+  async findUserByIdentity(identity: string) { const r = this.db.prepare('SELECT * FROM users WHERE phone = ? OR email = ? LIMIT 1').get(identity, identity) as Row | undefined; return r ? userFromRow(r) : undefined; }
+  async findUserById(id: string) { const r = this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as Row | undefined; return r ? userFromRow(r) : undefined; }
+  async listUsers() { return (this.db.prepare("SELECT * FROM users WHERE status='active' ORDER BY created_at DESC").all() as Row[]).map(userFromRow); }
+  async createUser(input: CreateUser) { const time = now(); const user: User = { id: randomUUID(), phone: input.channel === 'sms' ? input.identity : undefined, email: input.channel === 'email' ? input.identity : undefined, fullName: input.fullName, status: 'active', role: input.role ?? 'customer', createdAt: time, updatedAt: time }; this.db.prepare('INSERT INTO users(id,phone,email,full_name,status,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(user.id, user.phone ?? null, user.email ?? null, user.fullName ?? null, user.status, user.role, time, time); return user; }
+  async setUserRole(id: string, role: User['role']) { this.db.prepare('UPDATE users SET role=?,updated_at=? WHERE id=?').run(role, now(), id); return this.findUserById(id); }
+  async createOtp(input: CreateOtp) { const item = { ...input, createdAt: now() }; this.db.prepare('INSERT INTO otp_challenges(id,identity,channel,code_hash,attempts,max_attempts,expires_at,consumed_at,request_ip,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)').run(item.id,item.identity,item.channel,item.codeHash,item.attempts,item.maxAttempts,item.expiresAt,item.consumedAt ?? null,item.requestIp ?? null,item.createdAt); return item; }
+  async findOtp(id: string) { const r = this.db.prepare('SELECT * FROM otp_challenges WHERE id=?').get(id) as Row | undefined; return r ? otpFromRow(r) : undefined; }
+  async incrementOtpAttempts(id: string) { this.db.prepare('UPDATE otp_challenges SET attempts=attempts+1 WHERE id=?').run(id); return this.findOtp(id); }
+  async consumeOtp(id: string) { this.db.prepare('UPDATE otp_challenges SET consumed_at=? WHERE id=?').run(now(), id); }
+  async countRecentOtpRequests(identity: string, since: Date) { return Number((this.db.prepare('SELECT COUNT(*) AS count FROM otp_challenges WHERE identity=? AND created_at>=?').get(identity, since.toISOString()) as Row).count); }
+  async createSession(input: CreateSession) { const item = { ...input, createdAt: now() }; this.db.prepare('INSERT INTO sessions(id,user_id,refresh_jti,user_agent,ip,expires_at,revoked_at,created_at) VALUES(?,?,?,?,?,?,?,?)').run(item.id,item.userId,item.refreshJti,item.userAgent ?? null,item.ip ?? null,item.expiresAt,item.revokedAt ?? null,item.createdAt); return item; }
+  async findSessionById(id: string) { const r = this.db.prepare('SELECT * FROM sessions WHERE id=?').get(id) as Row | undefined; return r ? sessionFromRow(r) : undefined; }
+  async findSessionByRefreshJti(jti: string) { const r = this.db.prepare('SELECT * FROM sessions WHERE refresh_jti=?').get(jti) as Row | undefined; return r ? sessionFromRow(r) : undefined; }
+  async revokeSession(id: string) { this.db.prepare('UPDATE sessions SET revoked_at=? WHERE id=?').run(now(), id); }
+  async createBooking(input: CreateBooking) { const time = now(); const item: Booking = { id: randomUUID(), userId: input.userId, vertical: input.vertical, status: input.status ?? 'pending', request: input.request, createdAt: time, updatedAt: time }; this.db.prepare('INSERT INTO bookings(id,user_id,vertical,status,provider_ref,request,response,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(item.id,item.userId,item.vertical,item.status,null,json(item.request),null,time,time); return item; }
+  async updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>) { const item = await this.findBooking(id); if (!item) return undefined; const updated = { ...item, ...patch, updatedAt: now() }; this.db.prepare('UPDATE bookings SET status=?,provider_ref=?,request=?,response=?,updated_at=? WHERE id=?').run(updated.status,updated.providerRef ?? null,json(updated.request),updated.response === undefined ? null : json(updated.response),updated.updatedAt,id); return updated; }
+  async findBooking(id: string, userId?: string) { const r = this.db.prepare(`SELECT * FROM bookings WHERE id=? ${userId ? 'AND user_id=?' : ''}`).get(...(userId ? [id,userId] : [id])) as Row | undefined; return r ? bookingFromRow(r) : undefined; }
+  async listBookings(userId: string) { return (this.db.prepare('SELECT * FROM bookings WHERE user_id=? ORDER BY created_at DESC').all(userId) as Row[]).map(bookingFromRow); }
+  async listTours(filters: TourFilters = {}) { const where: string[] = []; const params: any[] = []; if (filters.status && filters.status !== 'all') { where.push('status=?'); params.push(filters.status); } else if (!filters.status) { where.push("status='published'"); } if (filters.q) { where.push('(LOWER(title) LIKE ? OR LOWER(country) LIKE ? OR LOWER(tour_type) LIKE ? OR LOWER(destinations) LIKE ?)'); const q=`%${filters.q.toLowerCase()}%`; params.push(q,q,q,q); } if (filters.country) { where.push('LOWER(country)=?'); params.push(filters.country.toLowerCase()); } if (filters.tourType) { where.push('LOWER(tour_type)=?'); params.push(filters.tourType.toLowerCase()); } if (filters.maxPrice !== undefined) { where.push('price_bdt<=?'); params.push(filters.maxPrice); } const order=filters.sort==='price_asc'?'price_bdt ASC':filters.sort==='price_desc'?'price_bdt DESC':'created_at DESC'; const sql=`SELECT * FROM tours ${where.length?'WHERE '+where.join(' AND '):''} ORDER BY ${order}`; return (this.db.prepare(sql).all(...params) as Row[]).map(tourFromRow); }
+  async findTour(idOrSlug: string) { const r=this.db.prepare('SELECT * FROM tours WHERE id=? OR slug=? LIMIT 1').get(idOrSlug,idOrSlug) as Row | undefined; return r ? tourFromRow(r) : undefined; }
+  async createTour(input: CreateTour) { const time=now(); const item:Tour={id:randomUUID(),...input,createdAt:time,updatedAt:time}; this.db.prepare('INSERT INTO tours(id,slug,title,country,tour_type,destinations,duration_days,duration_nights,description,image_url,price_bdt,status,featured,created_by,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(item.id,item.slug,item.title,item.country,item.tourType,json(item.destinations),item.durationDays,item.durationNights,item.description,item.imageUrl,item.priceBdt,item.status,item.featured?1:0,item.createdBy??null,time,time); return item; }
+  async updateTour(id: string, patch: UpdateTour) { const item=await this.findTour(id); if(!item)return undefined; const updated={...item,...patch,updatedAt:now()}; this.db.prepare('UPDATE tours SET slug=?,title=?,country=?,tour_type=?,destinations=?,duration_days=?,duration_nights=?,description=?,image_url=?,price_bdt=?,status=?,featured=?,updated_at=? WHERE id=?').run(updated.slug,updated.title,updated.country,updated.tourType,json(updated.destinations),updated.durationDays,updated.durationNights,updated.description,updated.imageUrl,updated.priceBdt,updated.status,updated.featured?1:0,updated.updatedAt,id); return updated; }
+  async archiveTour(id: string) { return this.updateTour(id,{status:'archived'}); }
+  async tourStats() { const rows=this.db.prepare('SELECT status,COUNT(*) AS count FROM tours GROUP BY status').all() as Row[]; const stats={total:0,published:0,draft:0,archived:0}; rows.forEach(r=>{stats[r.status as keyof typeof stats]=Number(r.count);stats.total+=Number(r.count);}); return stats; }
+  async createPayment(input: CreatePayment) { const time=now(); const item:Payment={id:randomUUID(),...input,status:input.status??'created',createdAt:time,updatedAt:time}; this.db.prepare('INSERT INTO payments(id,booking_id,user_id,provider,amount,currency,status,transaction_ref,provider_payload,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)').run(item.id,item.bookingId,item.userId,item.provider,item.amount,item.currency,item.status,null,null,time,time); return item; }
+  async updatePayment(id: string, patch: Partial<Pick<Payment,'status'|'transactionRef'|'providerPayload'>>) { const r=this.db.prepare('SELECT * FROM payments WHERE id=?').get(id) as Row|undefined;if(!r)return undefined;const item={...paymentFromRow(r),...patch,updatedAt:now()};this.db.prepare('UPDATE payments SET status=?,transaction_ref=?,provider_payload=?,updated_at=? WHERE id=?').run(item.status,item.transactionRef??null,item.providerPayload===undefined?null:json(item.providerPayload),item.updatedAt,id);return item; }
+  async createSupportTicket(input: CreateTicket) { const time=now();const item:SupportTicket={id:randomUUID(),...input,status:input.status??'open',createdAt:time,updatedAt:time};this.db.prepare('INSERT INTO support_tickets(id,user_id,name,mobile,email,subject,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(item.id,item.userId??null,item.name,item.mobile,item.email,item.subject,item.status,time,time);return item; }
+  async createNotification(input: CreateNotification) { const item:Notification={id:randomUUID(),...input,createdAt:now()};this.db.prepare('INSERT INTO notifications(id,user_id,title,message,channels,read_at,created_at) VALUES(?,?,?,?,?,?,?)').run(item.id,item.userId,item.title,item.message,json(item.channels),null,item.createdAt);return item; }
+  async listNotifications(userId: string) { return (this.db.prepare('SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 100').all(userId) as Row[]).map(notificationFromRow); }
+  async markNotificationRead(id: string,userId: string) { this.db.prepare('UPDATE notifications SET read_at=? WHERE id=? AND user_id=?').run(now(),id,userId);const r=this.db.prepare('SELECT * FROM notifications WHERE id=? AND user_id=?').get(id,userId) as Row|undefined;return r?notificationFromRow(r):undefined; }
+  async audit(action: string,input:{userId?:string;ip?:string;userAgent?:string;metadata?:unknown}) { this.db.prepare('INSERT INTO audit_logs(user_id,action,ip,user_agent,metadata,created_at) VALUES(?,?,?,?,?,?)').run(input.userId??null,action,input.ip??null,input.userAgent??null,json(input.metadata),now()); }
+}
+
+export function createStore(): { store: Store } { return { store: new SQLiteStore() }; }

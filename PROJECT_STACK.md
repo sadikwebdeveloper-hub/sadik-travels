@@ -1,155 +1,82 @@
-# Sadik Travels Project Stack and Backend Architecture
+# Sadik Travels Stack
 
-## What is used
-
-### Frontend
-
-- Plain HTML5
-- CSS3 with responsive breakpoints
-- Vanilla JavaScript
-- Local SVG icon sprite
-- Local Sadik Travels images and fonts
-- `api.js` as the single shared browser API client
-
-### Backend
+## Runtime
 
 - Node.js 20+
-- TypeScript
 - Express 5
-- Mongoose 8
-- MongoDB
-- Redis for distributed rate limiting in production
+- TypeScript
+- Vanilla HTML/CSS/JavaScript frontend
+- SQLite using `better-sqlite3`
 - JWT access/refresh sessions
 - HttpOnly cookies
-- Passwordless OTP authentication
-- Zod request validation
+- Zod validation
 - Helmet security headers
-- CORS with explicit origins
-- Pino HTTP logging
-- Docker and Docker Compose
+- Pino logging
+- Nodemailer SMTP email delivery
+- BulkSMSBD SMS delivery
 
-## Backend location
+## Single project layout
 
-All backend files are under:
+Frontend and backend are intentionally in one project. Run from the project root:
 
-```text
-backend/
+```powershell
+npm run dev
 ```
 
-The backend does not depend on frontend source files at runtime except for serving the built static UI from its `public` directory in the Docker image.
+The Express process serves:
 
-## Browser-to-backend connection
+- `/` — storefront
+- `/admin` — admin console
+- `/api/v1/*` — backend API
 
-Both the storefront and admin console load:
+## Database
 
-```html
-<script src="api.js"></script>
+SQLite is the only database layer. Tables are created automatically in `src/store.ts`:
+
+- users
+- OTP challenges
+- sessions
+- bookings
+- tours
+- payments
+- support tickets
+- notifications
+- audit logs
+
+No tour demo rows are seeded. Admins create and edit all tour packages through `/admin`.
+
+For Render, attach a persistent disk and set:
+
+```env
+SQLITE_PATH=/var/data/sadik.sqlite
 ```
 
-`api.js` exposes:
+## API client
+
+Both storefront and admin load `api.js`:
 
 ```javascript
 window.SadikApi.request(path, options)
-window.SadikApi.get(path)
-window.SadikApi.post(path, body)
-window.SadikApi.patch(path, body)
-window.SadikApi.delete(path)
 ```
 
-It automatically:
+It uses same-origin requests, cookies, refresh handling, and consistent API errors.
 
-- Uses same-origin relative requests
-- Sends cookies with `credentials: include`
-- Refreshes an expired access session once
-- Preserves API error codes and HTTP status
-- Works for both the storefront and `/admin`
+## Responsive navigation
 
-## MongoDB collections
+At phone widths:
 
-Mongoose models are defined in `backend/src/store.ts`:
+- Hamburger menu is hidden
+- Bottom navigation is shown
+- Flights, Hotels, Tours, Login, and More are available
+- More opens Homes, Visa, eSIM, Offers, Support, and Notifications
 
-- `SadikUser`
-- `SadikOtp`
-- `SadikSession`
-- `SadikBooking`
-- `SadikPayment`
-- `SadikSupportTicket`
-- `SadikTour`
-- `SadikAudit`
-- `SadikNotification`
+## Render
 
-MongoDB is the source of truth when:
-
-```env
-DATA_MODE=mongodb
-```
-
-A memory store remains available only for development previews where no MongoDB instance is available.
-
-## Main API groups
-
-### Authentication
-
-- `POST /api/v1/auth/request-otp`
-- `POST /api/v1/auth/verify-otp`
-- `POST /api/v1/auth/refresh`
-- `POST /api/v1/auth/logout`
-- `GET /api/v1/auth/me`
-
-### Travel and tours
-
-- `POST /api/v1/search/:vertical`
-- `GET /api/v1/tours`
-- `GET /api/v1/tours/:idOrSlug`
-- `POST /api/v1/bookings`
-- `GET /api/v1/bookings`
-- `POST /api/v1/bookings/:id/cancel`
-
-Supported verticals:
+`render.yaml` configures a single Node web service. Build and start commands are:
 
 ```text
-flight, hotel, home, visa, esim, tour
+npm ci && npm run build
+npm start
 ```
 
-### Admin tour catalogue
-
-- `GET /api/v1/admin/me`
-- `GET /api/v1/admin/stats`
-- `GET /api/v1/admin/tours`
-- `POST /api/v1/admin/tours`
-- `PATCH /api/v1/admin/tours/:id`
-- `DELETE /api/v1/admin/tours/:id`
-
-Admin routes require `admin` or `manager` role. Admin promotion is controlled by the server-side `ADMIN_IDENTITIES` allowlist.
-
-## Development commands
-
-```bash
-cd backend
-npm install
-npm run dev       # watch mode
-npm run typecheck
-npm run build
-# Tour packages are created and edited through /admin; no demo rows are seeded
-```
-
-## Split deployment
-
-`SPLIT_HOSTING.md` documents Netlify frontend + Vercel backend deployment, the Netlify same-origin API proxy, MongoDB Atlas, and required environment variables.
-
-## Production requirements
-
-Before production deployment, configure:
-
-- Managed MongoDB with backups and TLS
-- Managed Redis
-- Real SMS/email OTP provider
-- Real flight/hotel/tour provider APIs
-- Real payment gateway and signed webhook
-- HTTPS reverse proxy
-- Strong `JWT_SECRET`
-- `COOKIE_SECURE=true`
-- Explicit `APP_ORIGIN` and `CORS_ORIGINS`
-- `DEV_OTP_ECHO=false`
-
-The generic provider adapters intentionally fail rather than pretending to provide live inventory or payment confirmation without real credentials.
+A persistent Render disk is required for SQLite data to survive deployments.

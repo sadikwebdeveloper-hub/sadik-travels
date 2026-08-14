@@ -31,7 +31,7 @@ const toInput = (schema: z.ZodTypeAny, value: unknown) => {
 const clientMeta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-agent')?.slice(0, 500) });
 
 export function buildApp() {
-  const { store, connection } = createStore();
+  const { store } = createStore();
   const travel = new TravelProvider();
   const messaging = new MessagingProvider();
   const payment = new PaymentProvider();
@@ -48,7 +48,7 @@ export function buildApp() {
   app.use(rateLimit('global', 300, 60));
 
   app.get('/healthz', (_req, res) => res.json({ ok: true, service: 'sadik-travels-api', env: config.nodeEnv }));
-  app.get('/readyz', async (_req, res, next) => { try { await store.health(); res.json({ ok: true, database: config.dataMode }); } catch (error) { next(new AppError(503, 'NOT_READY', 'Service dependencies are not ready', config.isProduction ? undefined : error)); } });
+  app.get('/readyz', async (_req, res, next) => { try { await store.health(); res.json({ ok: true, database: 'sqlite' }); } catch (error) { next(new AppError(503, 'NOT_READY', 'Service dependencies are not ready', config.isProduction ? undefined : error)); } });
 
   // Authentication: Bangladesh phone OTP first, email OTP as a fallback.
   app.post('/api/v1/auth/request-otp', rateLimit('otp', 5, 300), async (req, res) => {
@@ -226,7 +226,7 @@ export function buildApp() {
     app.get('/', (_req, res) => res.json({ service: 'Sadik Travels backend', status: 'online', health: '/api/healthz', ready: '/api/readyz' }));
   }
 
-  // Serve the UI only when this process is the combined local/Docker app. Vercel can run API-only.
+  // Serve the storefront and admin from the same Node.js process.
   if (config.serveStatic) {
     app.get('/admin', (_req, res) => res.sendFile(path.join(config.publicDir, 'admin.html')));
     app.use(express.static(config.publicDir, { index: 'index.html', maxAge: config.isProduction ? '1h' : 0 }));
@@ -239,5 +239,5 @@ export function buildApp() {
     if ((req as any).log) (req as any).log.error({ err: error, requestId: req.requestId, code: normalized.code }, normalized.message);
     res.status(normalized.statusCode).json({ error: { code: normalized.code, message: normalized.expose ? normalized.message : 'An unexpected error occurred', ...(normalized.expose && normalized.details ? { details: normalized.details } : {}) }, requestId: req.requestId });
   });
-  return { app, store, connection };
+  return { app, store };
 }

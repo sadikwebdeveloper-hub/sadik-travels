@@ -88,9 +88,11 @@ Set the required environment variables in Render, including:
 
 The Render service serves both frontend and backend from the same origin, so no CORS or separate frontend server is required.
 
-## Notifications
+## Admin integrations and notifications
 
-Admin users can send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
+The admin console contains a secure integrations workspace for SSLCommerz, bKash, BulkSMSBD, SMTP email, live travel providers, brand contact fields, role management, and provider test actions. Secret values are encrypted with `SETTINGS_MASTER_KEY` and displayed masked after saving.
+
+Admin users can also send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
 
 SMS uses BulkSMSBD. Email uses SMTP.
 

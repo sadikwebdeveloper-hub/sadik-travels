@@ -80,3 +80,16 @@ npm start
 ```
 
 A persistent Render disk is required for SQLite data to survive deployments.
+
+## Admin integrations
+
+The admin console includes an encrypted integration settings workspace for:
+
+- SSLCommerz store ID, password, API URL, validation URL and IPN URL
+- bKash app key, app secret, username, password and base URL
+- SMS gateway URL, API key and sender ID
+- SMTP host, port, user, password and from address
+- Live travel provider URL and API key
+- Brand and support contact fields
+
+Secret values are encrypted with AES-256-GCM using `SETTINGS_MASTER_KEY`; admin responses return only a masked value. The admin console also includes role management for customer, manager and admin users, plus SMS/email test actions.

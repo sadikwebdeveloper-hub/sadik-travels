@@ -24,6 +24,7 @@ export const config = {
   cookieSecure: isTrue(process.env.COOKIE_SECURE, false),
   cookieSameSite: env('COOKIE_SAMESITE', 'lax') as 'lax' | 'strict' | 'none',
   adminIdentities: env('ADMIN_IDENTITIES').split(',').map(normalizeAdminIdentity).filter(Boolean),
+  settingsMasterKey: env('SETTINGS_MASTER_KEY', 'local-only-settings-master-key-change-me'),
   bulkSmsApiUrl: env('BULKSMSBD_API_URL', 'https://bulksmsbd.net/api/smsapi'),
   bulkSmsApiKey: env('BULKSMSBD_API_KEY'),
   bulkSmsSenderId: env('BULKSMSBD_SENDER_ID'),
@@ -50,6 +51,7 @@ export function validateConfig() {
   if (!config.sqlitePath) throw new Error('SQLITE_PATH is required');
   if (config.isProduction) {
     if (config.jwtSecret.length < 32 || config.jwtSecret.includes('local-only')) throw new Error('JWT_SECRET must be a strong production secret');
+    if (config.settingsMasterKey.length < 32 || config.settingsMasterKey.includes('local-only')) throw new Error('SETTINGS_MASTER_KEY must be a strong production secret');
     if (!config.cookieSameSite || !['lax', 'strict', 'none'].includes(config.cookieSameSite)) throw new Error('COOKIE_SAMESITE must be lax, strict, or none');
     if (!config.cookieSecure) throw new Error('COOKIE_SECURE must be true in production');
     if (config.cookieSameSite === 'none' && !config.cookieSecure) throw new Error('COOKIE_SAMESITE=none requires COOKIE_SECURE=true');

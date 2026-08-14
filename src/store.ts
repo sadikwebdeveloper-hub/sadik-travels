@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { config } from './config.js';
+import { decryptSecret, encryptSecret, maskSecret } from './secrets.js';
 
 export type Channel = 'sms' | 'email';
 export type User = { id: string; phone?: string; email?: string; fullName?: string; status: 'active' | 'blocked' | 'pending'; role: 'customer' | 'manager' | 'admin'; createdAt: string; updatedAt: string };
@@ -16,6 +17,8 @@ export type Booking = { id: string; userId: string; vertical: 'flight' | 'hotel'
 export type Payment = { id: string; bookingId: string; userId: string; provider: string; amount: number; currency: string; status: 'created' | 'pending' | 'paid' | 'failed' | 'refunded'; transactionRef?: string; providerPayload?: unknown; createdAt: string; updatedAt: string };
 export type SupportTicket = { id: string; userId?: string; name: string; mobile: string; email: string; subject: string; status: 'open' | 'pending' | 'closed'; createdAt: string; updatedAt: string };
 export type Notification = { id: string; userId: string; title: string; message: string; channels: ('in_app' | 'sms' | 'email')[]; readAt?: string; createdAt: string };
+export type AdminSetting = { key: string; value?: string; configured: boolean; masked?: string; secret: boolean };
+export type SettingPatch = Record<string, string | undefined>;
 
 type CreateUser = { identity: string; channel: Channel; fullName?: string; role?: User['role'] };
 type CreateOtp = Omit<OtpChallenge, 'createdAt'>;
@@ -46,7 +49,7 @@ export interface Store {
   createBooking(input: CreateBooking): Promise<Booking>; updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>): Promise<Booking | undefined>; findBooking(id: string, userId?: string): Promise<Booking | undefined>; listBookings(userId: string): Promise<Booking[]>;
   listTours(filters?: TourFilters): Promise<Tour[]>; findTour(idOrSlug: string): Promise<Tour | undefined>; createTour(input: CreateTour): Promise<Tour>; updateTour(id: string, patch: UpdateTour): Promise<Tour | undefined>; archiveTour(id: string): Promise<Tour | undefined>; tourStats(): Promise<{ total: number; published: number; draft: number; archived: number }>;
   createPayment(input: CreatePayment): Promise<Payment>; updatePayment(id: string, patch: Partial<Pick<Payment, 'status' | 'transactionRef' | 'providerPayload'>>): Promise<Payment | undefined>;
-  createSupportTicket(input: CreateTicket): Promise<SupportTicket>; createNotification(input: CreateNotification): Promise<Notification>; listNotifications(userId: string): Promise<Notification[]>; markNotificationRead(id: string, userId: string): Promise<Notification | undefined>;
+  createSupportTicket(input: CreateTicket): Promise<SupportTicket>; getSetting(key: string): Promise<string | undefined>; getAdminSettings(): Promise<AdminSetting[]>; updateSettings(patch: SettingPatch, updatedBy: string): Promise<void>; createNotification(input: CreateNotification): Promise<Notification>; listNotifications(userId: string): Promise<Notification[]>; markNotificationRead(id: string, userId: string): Promise<Notification | undefined>;
   audit(action: string, input: { userId?: string; ip?: string; userAgent?: string; metadata?: unknown }): Promise<void>;
 }
 
@@ -66,7 +69,10 @@ CREATE TABLE IF NOT EXISTS support_tickets (id TEXT PRIMARY KEY, user_id TEXT, n
 CREATE TABLE IF NOT EXISTS notifications (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, title TEXT NOT NULL, message TEXT NOT NULL, channels TEXT NOT NULL, read_at TEXT, created_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id, created_at);
 CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, action TEXT NOT NULL, ip TEXT, user_agent TEXT, metadata TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT, is_secret INTEGER NOT NULL DEFAULT 0, updated_by TEXT, updated_at TEXT NOT NULL);
 `;
+
+const SECRET_SETTING_KEYS = new Set(['sslcommerz_store_password', 'sslcommerz_api_key', 'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password', 'bkash_token', 'sms_api_key', 'smtp_password', 'travel_provider_api_key', 'payment_provider_api_key']);
 
 export class SQLiteStore implements Store {
   private db: Database.Database;
@@ -103,6 +109,9 @@ export class SQLiteStore implements Store {
   async createNotification(input: CreateNotification) { const item:Notification={id:randomUUID(),...input,createdAt:now()};this.db.prepare('INSERT INTO notifications(id,user_id,title,message,channels,read_at,created_at) VALUES(?,?,?,?,?,?,?)').run(item.id,item.userId,item.title,item.message,json(item.channels),null,item.createdAt);return item; }
   async listNotifications(userId: string) { return (this.db.prepare('SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 100').all(userId) as Row[]).map(notificationFromRow); }
   async markNotificationRead(id: string,userId: string) { this.db.prepare('UPDATE notifications SET read_at=? WHERE id=? AND user_id=?').run(now(),id,userId);const r=this.db.prepare('SELECT * FROM notifications WHERE id=? AND user_id=?').get(id,userId) as Row|undefined;return r?notificationFromRow(r):undefined; }
+  async getSetting(key: string) { const row = this.db.prepare('SELECT value,is_secret FROM settings WHERE key=?').get(key) as Row | undefined; if (!row?.value) return undefined; return row.is_secret ? decryptSecret(row.value) : String(row.value); }
+  async getAdminSettings() { const rows = this.db.prepare('SELECT key,value,is_secret FROM settings ORDER BY key').all() as Row[]; return rows.map(row => ({ key: row.key, configured: Boolean(row.value), secret: Boolean(row.is_secret), ...(row.is_secret ? { masked: maskSecret(row.value) } : { value: row.value ?? '' }) })); }
+  async updateSettings(patch: SettingPatch, updatedBy: string) { const statement = this.db.prepare('INSERT INTO settings(key,value,is_secret,updated_by,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,is_secret=excluded.is_secret,updated_by=excluded.updated_by,updated_at=excluded.updated_at'); const transaction = this.db.transaction((entries: [string, string | undefined][]) => { for (const [key, raw] of entries) { if (raw === undefined) continue; const secret = SECRET_SETTING_KEYS.has(key); statement.run(key, secret ? encryptSecret(raw) : raw, secret ? 1 : 0, updatedBy, now()); } }); transaction(Object.entries(patch)); }
   async audit(action: string,input:{userId?:string;ip?:string;userAgent?:string;metadata?:unknown}) { this.db.prepare('INSERT INTO audit_logs(user_id,action,ip,user_agent,metadata,created_at) VALUES(?,?,?,?,?,?)').run(input.userId??null,action,input.ip??null,input.userAgent??null,json(input.metadata),now()); }
 }
 

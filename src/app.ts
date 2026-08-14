@@ -13,6 +13,7 @@ import { hashOtp, issueSession, normalizeIdentity, setAuthCookies, clearAuthCook
 import { TravelProvider, MessagingProvider, PaymentProvider, type Vertical } from './providers.js';
 import { optionalAuth, requireAuth, requireAdmin, notFound, requestContext } from './middleware.js';
 import { rateLimit } from './rate-limit.js';
+import { SECRET_MASK } from './secrets.js';
 
 const verticalSchema = z.enum(['flight', 'hotel', 'home', 'visa', 'esim', 'tour']);
 const tourStatusSchema = z.enum(['draft', 'published', 'archived']);
@@ -24,6 +25,11 @@ const bookingRequest = z.object({ vertical: verticalSchema, payload: z.unknown()
 const paymentRequest = z.object({ bookingId: z.string().uuid(), amount: z.number().positive().max(10_000_000), currency: z.string().length(3).default('BDT') });
 const supportRequest = z.object({ name: z.string().trim().min(2).max(120), mobile: z.string().trim().min(7).max(30), email: z.string().email(), subject: z.string().trim().min(2).max(180) });
 const notificationRequest = z.object({ userId: z.string().optional(), identity: z.string().optional(), allUsers: z.boolean().default(false), title: z.string().trim().min(2).max(160), message: z.string().trim().min(2).max(4000), channels: z.array(z.enum(['in_app', 'sms', 'email'])).min(1).default(['in_app']) });
+const settingPatchSchema = z.object({ brand_name: z.string().max(120).optional(), support_email: z.string().email().or(z.literal('')).optional(), support_phone: z.string().max(40).optional(), payment_provider: z.enum(['sslcommerz', 'bkash']).optional(), sslcommerz_store_id: z.string().max(160).optional(), sslcommerz_store_password: z.string().max(500).optional(), sslcommerz_api_url: z.string().url().or(z.literal('')).optional(), sslcommerz_validation_url: z.string().url().or(z.literal('')).optional(), sslcommerz_ipn_url: z.string().url().or(z.literal('')).optional(), bkash_base_url: z.string().url().or(z.literal('')).optional(), bkash_app_key: z.string().max(500).optional(), bkash_app_secret: z.string().max(500).optional(), bkash_username: z.string().max(200).optional(), bkash_password: z.string().max(500).optional(), sms_gateway_url: z.string().url().or(z.literal('')).optional(), sms_api_key: z.string().max(500).optional(), sms_sender_id: z.string().max(120).optional(), smtp_host: z.string().max(200).optional(), smtp_port: z.coerce.number().int().min(1).max(65535).optional(), smtp_user: z.string().max(240).optional(), smtp_password: z.string().max(500).optional(), smtp_from: z.string().email().or(z.literal('')).optional(), travel_provider_url: z.string().url().or(z.literal('')).optional(), travel_provider_api_key: z.string().max(500).optional() }).strict();
+const roleRequest = z.object({ role: z.enum(['customer', 'manager', 'admin']) });
+const messageTestRequest = z.object({ destination: z.string().min(3).max(240), subject: z.string().max(160).optional(), message: z.string().min(1).max(4000) });
+const SETTING_KEYS = ['brand_name','support_email','support_phone','payment_provider','sslcommerz_store_id','sslcommerz_store_password','sslcommerz_api_url','sslcommerz_validation_url','sslcommerz_ipn_url','bkash_base_url','bkash_app_key','bkash_app_secret','bkash_username','bkash_password','sms_gateway_url','sms_api_key','sms_sender_id','smtp_host','smtp_port','smtp_user','smtp_password','smtp_from','travel_provider_url','travel_provider_api_key'];
+const SETTING_SECRET_KEYS = new Set(['sslcommerz_store_password','sslcommerz_api_key','bkash_app_key','bkash_app_secret','bkash_username','bkash_password','bkash_token','sms_api_key','smtp_password','travel_provider_api_key','payment_provider_api_key']);
 
 const toInput = (schema: z.ZodTypeAny, value: unknown) => {
   try { return schema.parse(value); } catch (error) { if (error instanceof ZodError) throw new AppError(400, 'VALIDATION_ERROR', 'Please check the submitted fields', error.flatten()); throw error; }
@@ -32,9 +38,9 @@ const clientMeta = (req: Request) => ({ ip: req.ip, userAgent: req.get('user-age
 
 export function buildApp() {
   const { store } = createStore();
-  const travel = new TravelProvider();
-  const messaging = new MessagingProvider();
-  const payment = new PaymentProvider();
+  const travel = new TravelProvider(store);
+  const messaging = new MessagingProvider(store);
+  const payment = new PaymentProvider(store);
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', config.trustProxy);
@@ -136,6 +142,12 @@ export function buildApp() {
   // Admin catalogue management. Admin identities are configured with ADMIN_IDENTITIES.
   app.get('/api/v1/admin/me', requireAdmin(store), (req, res) => res.json({ user: req.user, permissions: ['tours:read', 'tours:write', 'tours:archive'] }));
   app.get('/api/v1/admin/stats', requireAdmin(store), async (_req, res) => res.json({ tours: await store.tourStats() }));
+  app.get('/api/v1/admin/users', requireAdmin(store), async (_req, res) => res.json({ users: await store.listUsers() }));
+  app.patch('/api/v1/admin/users/:id/role', requireAdmin(store), async (req, res) => { assert(req.user!.role === 'admin', 403, 'ADMIN_ONLY', 'Only an admin can change roles'); const input = toInput(roleRequest, req.body); const user = await store.setUserRole(String(req.params.id), input.role); assert(user, 404, 'USER_NOT_FOUND', 'User not found'); res.json({ user }); });
+  app.get('/api/v1/admin/settings', requireAdmin(store), async (_req, res) => { const saved = new Map((await store.getAdminSettings()).map(item => [item.key, item])); const settings = await Promise.all(SETTING_KEYS.map(async key => { const item = saved.get(key); if (item) return item; const value = await store.getSetting(key); return { key, configured: Boolean(value), secret: SETTING_SECRET_KEYS.has(key), ...(SETTING_SECRET_KEYS.has(key) ? { masked: value ? SECRET_MASK : '' } : { value: value ?? '' }) }; })); res.json({ settings }); });
+  app.put('/api/v1/admin/settings', requireAdmin(store), async (req, res) => { const input = toInput(settingPatchSchema, req.body) as Record<string, string | undefined>; const patch = Object.fromEntries(Object.entries(input).filter(([key, value]) => value !== undefined && !(SETTING_SECRET_KEYS.has(key) && value === SECRET_MASK))); await store.updateSettings(patch, req.user!.id); await store.audit('admin.settings_updated', { ...clientMeta(req), userId: req.user!.id, metadata: { keys: Object.keys(patch) } }); res.json({ settings: await store.getAdminSettings() }); });
+  app.post('/api/v1/admin/settings/test-sms', requireAdmin(store), async (req, res) => { const input = toInput(messageTestRequest, req.body); const result = await messaging.sendSms(input.destination, input.message); res.json({ sent: true, result }); });
+  app.post('/api/v1/admin/settings/test-email', requireAdmin(store), async (req, res) => { const input = toInput(messageTestRequest, req.body); const result = await messaging.sendEmail(input.destination, input.subject || 'Sadik Travels test email', input.message); res.json({ sent: true, result }); });
   app.get('/api/v1/admin/tours', requireAdmin(store), async (req, res) => {
     const filters: TourFilters = { q: req.query.q ? String(req.query.q) : undefined, country: req.query.country ? String(req.query.country) : undefined, tourType: req.query.tourType ? String(req.query.tourType) : undefined, status: req.query.status === 'draft' || req.query.status === 'published' || req.query.status === 'archived' ? req.query.status : undefined, sort: req.query.sort === 'price_asc' || req.query.sort === 'price_desc' ? req.query.sort : 'newest' };
     res.json({ tours: await store.listTours(filters) });

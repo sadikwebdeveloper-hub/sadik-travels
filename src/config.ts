@@ -11,7 +11,7 @@ export const config = {
   host: env('HOST', '0.0.0.0'),
   port: Number(env('PORT', '8787')),
   appOrigin: env('APP_ORIGIN', 'http://localhost:8787'),
-  corsOrigins: env('CORS_ORIGINS', 'http://localhost:8787').split(',').map(value => value.trim()).filter(Boolean),
+  corsOrigins: [...env('CORS_ORIGINS', 'http://localhost:8787').split(','), env('APP_ORIGIN', 'http://localhost:8787')].map(value => value.trim()).filter(Boolean),
   trustProxy: isTrue(process.env.TRUST_PROXY),
   serveStatic: isTrue(process.env.SERVE_STATIC, true),
   sqlitePath: path.resolve(process.cwd(), env('SQLITE_PATH', './data/sadik.sqlite')),

@@ -60,3 +60,5 @@
   .hero{margin-top:58px}
   .chat-bubble{bottom:13px}
 }
+.chat-bubble{border-radius:50%;overflow:hidden;background:#fff;border:3px solid var(--brand);aspect-ratio:1;}
+.chat-bubble img{border-radius:50%;object-fit:cover;}

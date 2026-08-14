@@ -56,7 +56,7 @@ export function buildApp() {
 
   app.get('/healthz', (_req, res) => res.json({ ok: true, service: 'sadik-travels-api', env: config.nodeEnv }));
   app.get('/readyz', async (_req, res, next) => { try { await store.health(); res.json({ ok: true, database: 'sqlite' }); } catch (error) { next(new AppError(503, 'NOT_READY', 'Service dependencies are not ready', config.isProduction ? undefined : error)); } });
-  app.get('/api/v1/site/settings', async (_req, res) => { const features: Record<string, boolean> = {}; for (const key of FEATURE_KEYS) features[key.replace('feature_', '')] = (await store.getSetting(key)) !== 'false'; res.json({ brand: await store.getSetting('brand_name') || 'Sadik Travels', logoUrl: await store.getSetting('brand_logo_url') || '/assets/sadik-travels-logo.png', features }); });
+  app.get('/api/v1/site/settings', async (_req, res) => { const features: Record<string, boolean> = {}; for (const key of FEATURE_KEYS) features[key.replace('feature_', '')] = (await store.getSetting(key)) !== 'false'; const savedLogo = await store.getSetting('brand_logo_url'); const logoUrl = savedLogo && !savedLogo.includes('SqrRwJyv') ? savedLogo : '/assets/sadik-travels-logo.png?v=3'; res.json({ brand: await store.getSetting('brand_name') || 'Sadik Travels', logoUrl, features }); });
 
   // Authentication: Bangladesh phone OTP first, email OTP as a fallback.
   app.post('/api/v1/auth/request-otp', rateLimit('otp', 5, 300), async (req, res) => {

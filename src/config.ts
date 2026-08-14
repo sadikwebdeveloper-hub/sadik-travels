@@ -25,6 +25,10 @@ export const config = {
   cookieSameSite: env('COOKIE_SAMESITE', 'lax') as 'lax' | 'strict' | 'none',
   adminIdentities: env('ADMIN_IDENTITIES').split(',').map(normalizeAdminIdentity).filter(Boolean),
   settingsMasterKey: env('SETTINGS_MASTER_KEY', 'local-only-settings-master-key-change-me'),
+  smsProvider: env('SMS_PROVIDER', 'custom_gateway') as 'custom_gateway' | 'bulksmsbd',
+  smsGatewayUrl: env('SMS_GATEWAY_URL', 'https://flavor-experience-officially-desktops.trycloudflare.com/sms/send'),
+  smsGatewayUsername: env('SMS_GATEWAY_USERNAME', 'testuser'),
+  smsGatewayPassword: env('SMS_GATEWAY_PASSWORD', 'testpass'),
   bulkSmsApiUrl: env('BULKSMSBD_API_URL', 'https://bulksmsbd.net/api/smsapi'),
   bulkSmsApiKey: env('BULKSMSBD_API_KEY'),
   bulkSmsSenderId: env('BULKSMSBD_SENDER_ID'),
@@ -58,7 +62,7 @@ export function validateConfig() {
     if (!config.appOrigin.startsWith('https://')) throw new Error('APP_ORIGIN must use HTTPS in production');
     if (config.corsOrigins.some(origin => origin === '*')) throw new Error('Wildcard CORS is not allowed in production');
     if (config.corsOrigins.some(origin => !origin.startsWith('https://'))) throw new Error('CORS_ORIGINS must use HTTPS in production');
-    if (!config.bulkSmsApiKey || !config.bulkSmsSenderId) throw new Error('Production requires BulkSMSBD credentials for admin OTP access');
+    const hasCustomSms = Boolean(config.smsProvider === 'custom_gateway' && config.smsGatewayUrl && config.smsGatewayUsername && config.smsGatewayPassword); const hasBulkSms = Boolean(config.bulkSmsApiKey && config.bulkSmsSenderId); if (!hasCustomSms && !hasBulkSms) throw new Error('Production requires SMS gateway credentials for admin OTP access');
     if (!config.smtpHost || !config.smtpUser || !config.smtpPassword || !config.smtpFrom) throw new Error('Production requires SMTP settings');
     if (config.devOtpEcho) throw new Error('DEV_OTP_ECHO must be false in production');
   }

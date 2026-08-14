@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, use
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT, is_secret INTEGER NOT NULL DEFAULT 0, updated_by TEXT, updated_at TEXT NOT NULL);
 `;
 
-const SECRET_SETTING_KEYS = new Set(['payment_webhook_secret','sslcommerz_store_password', 'sslcommerz_api_key', 'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password', 'bkash_token', 'sms_api_key', 'smtp_password', 'travel_provider_api_key', 'payment_provider_api_key']);
+const SECRET_SETTING_KEYS = new Set(['payment_webhook_secret','sslcommerz_store_password', 'sslcommerz_api_key', 'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password', 'bkash_token', 'sms_api_key', 'sms_gateway_username', 'sms_gateway_password', 'smtp_password', 'travel_provider_api_key', 'payment_provider_api_key']);
 
 export class SQLiteStore implements Store {
   private db: Database.Database;

@@ -80,8 +80,12 @@ Set the required environment variables in Render, including:
 - `SQLITE_PATH=/var/data/sadik.sqlite`
 - `JWT_SECRET`
 - `ADMIN_IDENTITIES`
-- `BULKSMSBD_API_KEY`
-- `BULKSMSBD_SENDER_ID`
+- `SMS_PROVIDER`
+- `SMS_GATEWAY_URL`
+- `SMS_GATEWAY_USERNAME`
+- `SMS_GATEWAY_PASSWORD`
+- `BULKSMSBD_API_KEY` (fallback)
+- `BULKSMSBD_SENDER_ID` (fallback)
 - SMTP settings
 - Live travel provider credentials
 - Live payment provider credentials
@@ -94,7 +98,7 @@ The admin console contains a secure integrations workspace for SSLCommerz, bKash
 
 Admin users can also send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
 
-SMS uses BulkSMSBD. Email uses SMTP.
+SMS can use the configured JSON gateway or BulkSMSBD fallback. Email uses SMTP.
 
 ## Checks
 

@@ -62,3 +62,8 @@
 }
 .chat-bubble{border-radius:50%;overflow:hidden;background:#fff;border:3px solid var(--brand);aspect-ratio:1;}
 .chat-bubble img{border-radius:50%;object-fit:cover;}
+/* Stable floating contact control: never render the square source image outside the circular button. */
+.chat-bubble{display:block;width:68px;height:68px;aspect-ratio:1/1;padding:0;line-height:0;border:2px solid var(--brand);border-radius:50%;overflow:hidden;background:#000;isolation:isolate;box-shadow:0 5px 16px rgba(0,0,0,.28)}
+.chat-bubble img{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;border-radius:50%;object-fit:cover;object-position:center}
+.chat-bubble .chat-badge{z-index:2;line-height:16px}
+@media(max-width:560px){.chat-bubble{right:12px;bottom:12px;width:62px;height:62px}}

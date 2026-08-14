@@ -58,9 +58,7 @@ export function validateConfig() {
     if (!config.appOrigin.startsWith('https://')) throw new Error('APP_ORIGIN must use HTTPS in production');
     if (config.corsOrigins.some(origin => origin === '*')) throw new Error('Wildcard CORS is not allowed in production');
     if (config.corsOrigins.some(origin => !origin.startsWith('https://'))) throw new Error('CORS_ORIGINS must use HTTPS in production');
-    if (!config.providerBaseUrl || !config.providerApiKey) throw new Error('Production requires travel provider credentials');
-    if (!config.paymentBaseUrl || !config.paymentApiKey || !config.paymentWebhookSecret) throw new Error('Production requires payment provider credentials');
-    if (!config.bulkSmsApiKey || !config.bulkSmsSenderId) throw new Error('Production requires BulkSMSBD credentials');
+    if (!config.bulkSmsApiKey || !config.bulkSmsSenderId) throw new Error('Production requires BulkSMSBD credentials for admin OTP access');
     if (!config.smtpHost || !config.smtpUser || !config.smtpPassword || !config.smtpFrom) throw new Error('Production requires SMTP settings');
     if (config.devOtpEcho) throw new Error('DEV_OTP_ECHO must be false in production');
   }

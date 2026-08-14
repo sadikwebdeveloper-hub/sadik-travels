@@ -7,8 +7,8 @@ import type { Store, User } from './store.js';
 
 const scrypt = promisify(scryptCallback);
 const secretKey = new TextEncoder().encode(config.jwtSecret);
-export const ACCESS_COOKIE = 'amy_access_token';
-export const REFRESH_COOKIE = 'amy_refresh_token';
+export const ACCESS_COOKIE = 'sadik_access_token';
+export const REFRESH_COOKIE = 'sadik_refresh_token';
 
 export function normalizeIdentity(value: string): { identity: string; channel: 'sms' | 'email' } {
   const raw = value.trim();

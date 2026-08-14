@@ -8,7 +8,7 @@ if (connection) {
   catch (error) { console.error('MongoDB connection failed', error); process.exit(1); }
 }
 const server = app.listen(config.port, config.host, () => {
-  console.log(`Amy backend listening on http://${config.host}:${config.port} (${config.nodeEnv}, data=${config.dataMode}, provider=${config.providerMode}, payments=${config.paymentMode})`);
+  console.log(`Sadik Travels backend listening on http://${config.host}:${config.port} (${config.nodeEnv}, data=${config.dataMode}, provider=${config.providerMode}, payments=${config.paymentMode})`);
 });
 
 const shutdown = async (signal: string) => {

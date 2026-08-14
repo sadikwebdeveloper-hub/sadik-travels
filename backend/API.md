@@ -1,4 +1,4 @@
-# Amy API
+# Sadik Travels API
 
 Base URL: `/api/v1`
 
@@ -25,6 +25,8 @@ Authentication is passwordless OTP-based. The API sets Secure/HttpOnly cookies i
 - `POST /bookings/:id/cancel`
 - `POST /payments/intents` — `{ "bookingId": "uuid", "amount": 18450, "currency": "BDT" }`
 - `POST /support/tickets`
+- `GET /notifications`
+- `PATCH /notifications/:id/read`
 
 ## Admin
 
@@ -36,9 +38,10 @@ Admin endpoints require a user role of `admin` or `manager`; identities must be 
 - `POST /admin/tours`
 - `PATCH /admin/tours/:id`
 - `DELETE /admin/tours/:id` (archives the package)
+- `POST /admin/notifications` — in-app, SMS, and email notifications to one user or all active users
 
 The admin UI is served at `/admin`.
 
 ## Provider boundary
 
-`src/providers.ts` contains replaceable adapters for travel search/reservation/cancellation, OTP delivery, and payments. Set `PROVIDER_MODE=mock` / `PAYMENT_MODE=mock` only for local development. Production configuration must use live adapters and credentials; the server refuses unsafe production settings.
+`src/providers.ts` contains live adapters for travel search/reservation/cancellation, BulkSMSBD/SMTP delivery, and payments. No mock inventory, demo tour rows, or fake payment responses are generated. Configure the real credentials before enabling those flows.

@@ -15,6 +15,8 @@ export type Session = { id: string; userId: string; refreshJti: string; userAgen
 export type Booking = { id: string; userId: string; vertical: 'flight' | 'hotel' | 'home' | 'visa' | 'esim' | 'tour'; status: 'pending' | 'confirmed' | 'cancelled' | 'failed'; providerRef?: string; request: unknown; response?: unknown; createdAt: string; updatedAt: string };
 export type Payment = { id: string; bookingId: string; userId: string; provider: string; amount: number; currency: string; status: 'created' | 'pending' | 'paid' | 'failed' | 'refunded'; transactionRef?: string; providerPayload?: unknown; createdAt: string; updatedAt: string };
 export type SupportTicket = { id: string; userId?: string; name: string; mobile: string; email: string; subject: string; status: 'open' | 'pending' | 'closed'; createdAt: string; updatedAt: string };
+export type Notification = { id: string; userId: string; title: string; message: string; channels: ('in_app' | 'sms' | 'email')[]; readAt?: string; createdAt: string };
+type CreateNotification = Omit<Notification, 'id' | 'createdAt'>;
 
 type CreateUser = { identity: string; channel: Channel; fullName?: string; role?: User['role'] };
 type CreateOtp = Omit<OtpChallenge, 'createdAt'>;
@@ -35,15 +37,17 @@ const paymentSchema = new Schema({ id: { type: String, unique: true, index: true
 const supportTicketSchema = new Schema({ id: { type: String, unique: true, index: true }, userId: String, name: String, mobile: String, email: String, subject: String, status: { type: String, enum: ['open', 'pending', 'closed'], default: 'open', index: true } }, baseOptions);
 const tourSchema = new Schema({ id: { type: String, unique: true, index: true }, slug: { type: String, unique: true, index: true }, title: String, country: { type: String, index: true }, tourType: { type: String, index: true }, destinations: { type: [String], default: [] }, durationDays: Number, durationNights: Number, description: String, imageUrl: String, priceBdt: { type: Number, index: true }, status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft', index: true }, featured: Boolean, createdBy: String }, baseOptions);
 const auditSchema = new Schema({ userId: String, action: String, ip: String, userAgent: String, metadata: Schema.Types.Mixed }, { ...baseOptions, timestamps: { createdAt: true, updatedAt: false } });
+const notificationSchema = new Schema({ id: { type: String, unique: true, index: true }, userId: { type: String, index: true }, title: String, message: String, channels: { type: [String], enum: ['in_app', 'sms', 'email'], default: ['in_app'] }, readAt: Date }, { ...baseOptions, timestamps: { createdAt: true, updatedAt: false } });
 
-export const UserModel = (models.AmyUser as Model<any>) || model('AmyUser', userSchema);
-export const OtpModel = (models.AmyOtp as Model<any>) || model('AmyOtp', otpSchema);
-export const SessionModel = (models.AmySession as Model<any>) || model('AmySession', sessionSchema);
-export const BookingModel = (models.AmyBooking as Model<any>) || model('AmyBooking', bookingSchema);
-export const PaymentModel = (models.AmyPayment as Model<any>) || model('AmyPayment', paymentSchema);
-export const SupportTicketModel = (models.AmySupportTicket as Model<any>) || model('AmySupportTicket', supportTicketSchema);
-export const TourModel = (models.AmyTour as Model<any>) || model('AmyTour', tourSchema);
-export const AuditModel = (models.AmyAudit as Model<any>) || model('AmyAudit', auditSchema);
+export const UserModel = (models.SadikUser as Model<any>) || model('SadikUser', userSchema);
+export const OtpModel = (models.SadikOtp as Model<any>) || model('SadikOtp', otpSchema);
+export const SessionModel = (models.SadikSession as Model<any>) || model('SadikSession', sessionSchema);
+export const BookingModel = (models.SadikBooking as Model<any>) || model('SadikBooking', bookingSchema);
+export const PaymentModel = (models.SadikPayment as Model<any>) || model('SadikPayment', paymentSchema);
+export const SupportTicketModel = (models.SadikSupportTicket as Model<any>) || model('SadikSupportTicket', supportTicketSchema);
+export const TourModel = (models.SadikTour as Model<any>) || model('SadikTour', tourSchema);
+export const AuditModel = (models.SadikAudit as Model<any>) || model('SadikAudit', auditSchema);
+export const NotificationModel = (models.SadikNotification as Model<any>) || model('SadikNotification', notificationSchema);
 
 const userFromDoc = (doc: any): User => ({ id: doc.id, phone: doc.phone ?? undefined, email: doc.email ?? undefined, fullName: doc.fullName ?? undefined, status: doc.status, role: doc.role ?? 'customer', createdAt: new Date(doc.createdAt).toISOString(), updatedAt: new Date(doc.updatedAt).toISOString() });
 const otpFromDoc = (doc: any): OtpChallenge => ({ id: doc.id, identity: doc.identity, channel: doc.channel, codeHash: doc.codeHash, attempts: doc.attempts, maxAttempts: doc.maxAttempts, expiresAt: new Date(doc.expiresAt).toISOString(), consumedAt: toIso(doc.consumedAt), requestIp: doc.requestIp ?? undefined, createdAt: new Date(doc.createdAt).toISOString() });
@@ -52,6 +56,7 @@ const bookingFromDoc = (doc: any): Booking => ({ id: doc.id, userId: doc.userId,
 const paymentFromDoc = (doc: any): Payment => ({ id: doc.id, bookingId: doc.bookingId, userId: doc.userId, provider: doc.provider, amount: Number(doc.amount), currency: doc.currency, status: doc.status, transactionRef: doc.transactionRef ?? undefined, providerPayload: doc.providerPayload ?? undefined, createdAt: new Date(doc.createdAt).toISOString(), updatedAt: new Date(doc.updatedAt).toISOString() });
 const ticketFromDoc = (doc: any): SupportTicket => ({ id: doc.id, userId: doc.userId ?? undefined, name: doc.name, mobile: doc.mobile, email: doc.email, subject: doc.subject, status: doc.status, createdAt: new Date(doc.createdAt).toISOString(), updatedAt: new Date(doc.updatedAt).toISOString() });
 const tourFromDoc = (doc: any): Tour => ({ id: doc.id, slug: doc.slug, title: doc.title, country: doc.country, tourType: doc.tourType, destinations: Array.isArray(doc.destinations) ? doc.destinations : [], durationDays: Number(doc.durationDays), durationNights: Number(doc.durationNights), description: doc.description ?? '', imageUrl: doc.imageUrl ?? '', priceBdt: Number(doc.priceBdt), status: doc.status, featured: Boolean(doc.featured), createdBy: doc.createdBy ?? undefined, createdAt: new Date(doc.createdAt).toISOString(), updatedAt: new Date(doc.updatedAt).toISOString() });
+const notificationFromDoc = (doc: any): Notification => ({ id: doc.id, userId: doc.userId, title: doc.title, message: doc.message, channels: doc.channels, readAt: toIso(doc.readAt), createdAt: new Date(doc.createdAt).toISOString() });
 
 export interface Store {
   health(): Promise<boolean>;
@@ -72,6 +77,10 @@ export interface Store {
   updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>): Promise<Booking | undefined>;
   findBooking(id: string, userId?: string): Promise<Booking | undefined>;
   listBookings(userId: string): Promise<Booking[]>;
+  listUsers(): Promise<User[]>;
+  createNotification(input: CreateNotification): Promise<Notification>;
+  listNotifications(userId: string): Promise<Notification[]>;
+  markNotificationRead(id: string, userId: string): Promise<Notification | undefined>;
   listTours(filters?: TourFilters): Promise<Tour[]>;
   findTour(idOrSlug: string): Promise<Tour | undefined>;
   createTour(input: CreateTour): Promise<Tour>;
@@ -84,16 +93,9 @@ export interface Store {
   audit(action: string, input: { userId?: string; ip?: string; userAgent?: string; metadata?: unknown }): Promise<void>;
 }
 
-export const seedTours: CreateTour[] = [
-  { slug: 'coxs-bazar-saint-martins-family-package', title: 'Cox’s Bazar – Saint Martins Island Package', country: 'Bangladesh', tourType: 'Family Tour', destinations: ["Cox's Bazar", 'St. Martins'], durationDays: 4, durationNights: 3, description: 'A relaxed family escape across the sea beach and island landscapes of Bangladesh.', imageUrl: '/assets/images__phuket.jpg', priceBdt: 11800, status: 'published', featured: true },
-  { slug: 'dhaka-coxs-bazar-dhaka-family-tour', title: 'Dhaka – Cox’s Bazar – Dhaka Tour Package', country: 'Bangladesh', tourType: 'Family Tour', destinations: ["Cox's Bazar"], durationDays: 3, durationNights: 2, description: 'A comfortable family-friendly coastal getaway from Dhaka.', imageUrl: '/assets/images__maldives.jpg', priceBdt: 6500, status: 'published', featured: true },
-  { slug: 'dhaka-rangamati-bandarban-coxs-bazar', title: 'Dhaka – Rangamati – Bandarban – Cox’s Bazar', country: 'Bangladesh', tourType: 'Adventure Tour', destinations: ['Rangamati', 'Bandarban', "Cox's Bazar"], durationDays: 4, durationNights: 3, description: 'Hill tracts, waterfalls and the longest natural sea beach in one route.', imageUrl: '/assets/images__venice.jpg', priceBdt: 15200, status: 'published', featured: false },
-  { slug: 'sreemangal-sylhet-nature-tour', title: 'Sreemangal and Sylhet Nature Tour', country: 'Bangladesh', tourType: 'Nature Tour', destinations: ['Sreemangal', 'Sylhet'], durationDays: 5, durationNights: 4, description: 'Tea gardens, waterfalls and green landscapes for curious travellers.', imageUrl: '/assets/images__dubai.jpg', priceBdt: 13800, status: 'published', featured: false }
-];
-
 export class MemoryStore implements Store {
-  private users = new Map<string, User>(); private identities = new Map<string, string>(); private otps = new Map<string, OtpChallenge>(); private sessions = new Map<string, Session>(); private bookings = new Map<string, Booking>(); private payments = new Map<string, Payment>(); private tickets = new Map<string, SupportTicket>(); private tours = new Map<string, Tour>();
-  constructor() { seedTours.forEach(input => { const time = now(); const tour: Tour = { id: randomUUID(), ...input, createdAt: time, updatedAt: time }; this.tours.set(tour.id, tour); }); }
+  private users = new Map<string, User>(); private notifications = new Map<string, Notification>(); private identities = new Map<string, string>(); private otps = new Map<string, OtpChallenge>(); private sessions = new Map<string, Session>(); private bookings = new Map<string, Booking>(); private payments = new Map<string, Payment>(); private tickets = new Map<string, SupportTicket>(); private tours = new Map<string, Tour>();
+  constructor() {}
   async health() { return true; }
   async findUserByIdentity(identity: string) { const id = this.identities.get(identity); return id ? this.users.get(id) : undefined; }
   async findUserById(id: string) { return this.users.get(id); }
@@ -112,6 +114,10 @@ export class MemoryStore implements Store {
   async updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>) { const item = this.bookings.get(id); if (!item) return undefined; Object.assign(item, patch, { updatedAt: now() }); return item; }
   async findBooking(id: string, userId?: string) { const item = this.bookings.get(id); return item && (!userId || item.userId === userId) ? item : undefined; }
   async listBookings(userId: string) { return [...this.bookings.values()].filter(item => item.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  async listUsers() { return [...this.users.values()]; }
+  async createNotification(input: CreateNotification) { const item: Notification = { id: randomUUID(), ...input, createdAt: now() }; this.notifications.set(item.id, item); return item; }
+  async listNotifications(userId: string) { return [...this.notifications.values()].filter(item => item.userId === userId).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+  async markNotificationRead(id: string, userId: string) { const item = this.notifications.get(id); if (!item || item.userId !== userId) return undefined; item.readAt = now(); return item; }
   async listTours(filters: TourFilters = {}) { let list = [...this.tours.values()]; if (!filters.status) list = list.filter(item => item.status === 'published'); else list = list.filter(item => item.status === filters.status); if (filters.q) { const q = filters.q.toLowerCase(); list = list.filter(item => `${item.title} ${item.country} ${item.tourType} ${item.destinations.join(' ')}`.toLowerCase().includes(q)); } if (filters.country) list = list.filter(item => item.country.toLowerCase() === filters.country!.toLowerCase()); if (filters.tourType) list = list.filter(item => item.tourType.toLowerCase() === filters.tourType!.toLowerCase()); if (filters.maxPrice !== undefined) list = list.filter(item => item.priceBdt <= filters.maxPrice!); list.sort((a, b) => filters.sort === 'price_asc' ? a.priceBdt - b.priceBdt : filters.sort === 'price_desc' ? b.priceBdt - a.priceBdt : b.createdAt.localeCompare(a.createdAt)); return list; }
   async findTour(idOrSlug: string) { return [...this.tours.values()].find(item => item.id === idOrSlug || item.slug === idOrSlug); }
   async createTour(input: CreateTour) { const time = now(); const tour: Tour = { id: randomUUID(), ...input, createdAt: time, updatedAt: time }; this.tours.set(tour.id, tour); return tour; }
@@ -143,6 +149,10 @@ export class MongoStore implements Store {
   async updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>) { const doc = await BookingModel.findOneAndUpdate({ id }, { $set: patch }, { new: true }).lean(); return doc ? bookingFromDoc(doc) : undefined; }
   async findBooking(id: string, userId?: string) { const query: any = { id }; if (userId) query.userId = userId; const doc = await BookingModel.findOne(query).lean(); return doc ? bookingFromDoc(doc) : undefined; }
   async listBookings(userId: string) { const docs = await BookingModel.find({ userId }).sort({ createdAt: -1 }).lean(); return docs.map(bookingFromDoc); }
+  async listUsers() { const docs = await UserModel.find({ status: 'active' }).lean(); return docs.map(userFromDoc); }
+  async createNotification(input: CreateNotification) { const doc = await NotificationModel.create({ id: randomUUID(), ...input }); return notificationFromDoc(doc); }
+  async listNotifications(userId: string) { const docs = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(100).lean(); return docs.map(notificationFromDoc); }
+  async markNotificationRead(id: string, userId: string) { const doc = await NotificationModel.findOneAndUpdate({ id, userId }, { $set: { readAt: new Date() } }, { new: true }).lean(); return doc ? notificationFromDoc(doc) : undefined; }
   async listTours(filters: TourFilters = {}) { const query: any = { status: filters.status ?? 'published' }; if (filters.q) { const rx = new RegExp(filters.q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'); query.$or = [{ title: rx }, { country: rx }, { tourType: rx }, { destinations: rx }]; } if (filters.country) query.country = new RegExp(`^${filters.country.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'); if (filters.tourType) query.tourType = new RegExp(`^${filters.tourType.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'); if (filters.maxPrice !== undefined) query.priceBdt = { $lte: filters.maxPrice }; const sort: any = filters.sort === 'price_asc' ? { priceBdt: 1 } : filters.sort === 'price_desc' ? { priceBdt: -1 } : { createdAt: -1 }; const docs = await TourModel.find(query).sort(sort).lean(); return docs.map(tourFromDoc); }
   async findTour(idOrSlug: string) { const doc = await TourModel.findOne({ $or: [{ id: idOrSlug }, { slug: idOrSlug }] }).lean(); return doc ? tourFromDoc(doc) : undefined; }
   async createTour(input: CreateTour) { const doc = await TourModel.create({ id: randomUUID(), ...input }); return tourFromDoc(doc); }

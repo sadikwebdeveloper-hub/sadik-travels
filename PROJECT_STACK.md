@@ -1,4 +1,4 @@
-# Amy Travel Project Stack and Backend Architecture
+# Sadik Travels Project Stack and Backend Architecture
 
 ## What is used
 
@@ -8,7 +8,7 @@
 - CSS3 with responsive breakpoints
 - Vanilla JavaScript
 - Local SVG icon sprite
-- Local Amy images and fonts
+- Local Sadik Travels images and fonts
 - `api.js` as the single shared browser API client
 
 ### Backend
@@ -49,11 +49,11 @@ Both the storefront and admin console load:
 `api.js` exposes:
 
 ```javascript
-window.AmyApi.request(path, options)
-window.AmyApi.get(path)
-window.AmyApi.post(path, body)
-window.AmyApi.patch(path, body)
-window.AmyApi.delete(path)
+window.SadikApi.request(path, options)
+window.SadikApi.get(path)
+window.SadikApi.post(path, body)
+window.SadikApi.patch(path, body)
+window.SadikApi.delete(path)
 ```
 
 It automatically:
@@ -68,14 +68,15 @@ It automatically:
 
 Mongoose models are defined in `backend/src/store.ts`:
 
-- `AmyUser`
-- `AmyOtp`
-- `AmySession`
-- `AmyBooking`
-- `AmyPayment`
-- `AmySupportTicket`
-- `AmyTour`
-- `AmyAudit`
+- `SadikUser`
+- `SadikOtp`
+- `SadikSession`
+- `SadikBooking`
+- `SadikPayment`
+- `SadikSupportTicket`
+- `SadikTour`
+- `SadikAudit`
+- `SadikNotification`
 
 MongoDB is the source of truth when:
 
@@ -129,7 +130,7 @@ npm install
 npm run dev       # watch mode
 npm run typecheck
 npm run build
-npm run seed      # seed MongoDB tour packages
+# Tour packages are created and edited through /admin; no demo rows are seeded
 ```
 
 ## Production requirements

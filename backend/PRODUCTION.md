@@ -21,18 +21,26 @@ This repository now contains the application boundary and secure production chec
    - Register the public HTTPS webhook URL and verify signatures in the provider's sandbox before production.
 
 4. **Infrastructure**
-   - Use MongoDB with TLS/backups: `DATA_MODE=mongodb`, `MONGODB_URI`, and `npm run seed` for initial catalogue data.
+   - Use MongoDB with TLS/backups: `DATA_MODE=mongodb` and `MONGODB_URI`. Tour packages are created through `/admin`; no demo rows are seeded.
    - Use a managed Redis instance: `REDIS_URL`.
    - Use a strong `JWT_SECRET`, `COOKIE_SECURE=true`, explicit `APP_ORIGIN`, and explicit `CORS_ORIGINS`.
    - Put the service behind an HTTPS reverse proxy/load balancer, configure backups, alerts, log retention, and secret rotation.
 
 5. **Admin access and catalogue**
-   - Set `ADMIN_IDENTITIES` to normalized phone/email identities for Amy managers/admins.
+   - Set `ADMIN_IDENTITIES` to normalized phone/email identities for Sadik Travels managers/admins.
    - Open `/admin` to manage tour packages; admin access is still protected by OTP and the server-side role allowlist.
    - Run the tour CRUD and archive flows against the MongoDB staging database before publishing.
 
 6. **Operational sign-off**
    - Run search, booking, payment, cancellation, OTP expiry, OTP throttling, webhook replay, refund, and provider outage tests against sandbox systems.
-   - Add business-specific admin roles, reconciliation jobs, KYC/AML rules, tax/invoice requirements, and customer support workflows as required by Amy/BeFresh policy.
+   - Add business-specific admin roles, reconciliation jobs, KYC/AML rules, tax/invoice requirements, and customer support workflows as required by Sadik Travels policy.
 
-The API refuses to boot with unsafe production settings, including in-memory storage, mock providers, echoed OTPs, insecure cookies, missing Redis, or missing provider/payment credentials.
+The API refuses to boot with unsafe production settings, including in-memory storage, echoed OTPs, insecure cookies, missing Redis, missing BulkSMSBD/SMTP settings, or missing provider/payment credentials.
+
+## Notifications and messaging
+
+- **SMS:** `MessagingProvider` sends URL-encoded POST requests to BulkSMSBD's `https://bulksmsbd.net/api/smsapi` endpoint using `api_key`, `senderid`, `number`, and `message`.
+- **Email:** SMTP is used through Nodemailer with `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM`.
+- **Website:** Admins can send in-app notifications from `/admin`; signed-in users receive them under the notification bell.
+
+Set `DEV_OTP_ECHO=false` and configure BulkSMSBD/SMTP before enabling customer notifications in production.

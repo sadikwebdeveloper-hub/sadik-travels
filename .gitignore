@@ -13,4 +13,5 @@ backend/.env
 # Logs and local caches
 *.log
 .npm/
+uploads/
 .DS_Store

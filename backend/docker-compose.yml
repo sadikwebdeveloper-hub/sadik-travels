@@ -18,9 +18,9 @@ services:
     image: mongo:8
     command: ["mongod", "--bind_ip_all"]
     environment:
-      MONGO_INITDB_DATABASE: amy
+      MONGO_INITDB_DATABASE: sadik_travels
     volumes:
-      - amy_mongodata:/data/db
+      - sadik_mongodata:/data/db
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep 1"]
       interval: 5s
@@ -31,9 +31,9 @@ services:
     image: redis:7-alpine
     command: redis-server --appendonly yes
     volumes:
-      - amy_redisdata:/data
+      - sadik_redisdata:/data
     restart: unless-stopped
 
 volumes:
-  amy_mongodata:
-  amy_redisdata:
+  sadik_mongodata:
+  sadik_redisdata:

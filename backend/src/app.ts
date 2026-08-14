@@ -23,6 +23,7 @@ const verifyOtpRequest = z.object({ challengeId: z.string().uuid(), code: z.stri
 const bookingRequest = z.object({ vertical: verticalSchema, payload: z.unknown() });
 const paymentRequest = z.object({ bookingId: z.string().uuid(), amount: z.number().positive().max(10_000_000), currency: z.string().length(3).default('BDT') });
 const supportRequest = z.object({ name: z.string().trim().min(2).max(120), mobile: z.string().trim().min(7).max(30), email: z.string().email(), subject: z.string().trim().min(2).max(180) });
+const notificationRequest = z.object({ userId: z.string().optional(), identity: z.string().optional(), allUsers: z.boolean().default(false), title: z.string().trim().min(2).max(160), message: z.string().trim().min(2).max(4000), channels: z.array(z.enum(['in_app', 'sms', 'email'])).min(1).default(['in_app']) });
 
 const toInput = (schema: z.ZodTypeAny, value: unknown) => {
   try { return schema.parse(value); } catch (error) { if (error instanceof ZodError) throw new AppError(400, 'VALIDATION_ERROR', 'Please check the submitted fields', error.flatten()); throw error; }
@@ -46,7 +47,7 @@ export function buildApp() {
   app.use(cookieParser());
   app.use(rateLimit('global', 300, 60));
 
-  app.get('/healthz', (_req, res) => res.json({ ok: true, service: 'amy-api', env: config.nodeEnv }));
+  app.get('/healthz', (_req, res) => res.json({ ok: true, service: 'sadik-travels-api', env: config.nodeEnv }));
   app.get('/readyz', async (_req, res, next) => { try { await store.health(); res.json({ ok: true, database: config.dataMode }); } catch (error) { next(new AppError(503, 'NOT_READY', 'Service dependencies are not ready', config.isProduction ? undefined : error)); } });
 
   // Authentication: Bangladesh phone OTP first, email OTP as a fallback.
@@ -105,6 +106,8 @@ export function buildApp() {
     } catch (error) { next(error); }
   });
   app.get('/api/v1/auth/me', requireAuth(store), (req, res) => res.json({ user: req.user }));
+  app.get('/api/v1/notifications', requireAuth(store), async (req, res) => { const notifications = await store.listNotifications(req.user!.id); res.json({ notifications, unread: notifications.filter(item => !item.readAt).length }); });
+  app.patch('/api/v1/notifications/:id/read', requireAuth(store), async (req, res) => { const notification = await store.markNotificationRead(String(req.params.id), req.user!.id); assert(notification, 404, 'NOTIFICATION_NOT_FOUND', 'Notification not found'); res.json({ notification }); });
 
   // Public tour catalog and reference-style search results.
   app.get('/api/v1/tours', rateLimit('tour-catalog', 120, 60), optionalAuth(store), async (req, res) => {
@@ -156,6 +159,22 @@ export function buildApp() {
     await store.audit('admin.tour_archived', { ...clientMeta(req), userId: req.user!.id, metadata: { tourId: tour.id } });
     res.json({ tour });
   });
+  app.post('/api/v1/admin/notifications', requireAdmin(store), async (req, res) => {
+    const input = toInput(notificationRequest, req.body);
+    const normalizedRecipient = input.identity ? normalizeIdentity(input.identity).identity : undefined;
+    const recipients = input.allUsers ? await store.listUsers() : [input.userId ? await store.findUserById(input.userId) : normalizedRecipient ? await store.findUserByIdentity(normalizedRecipient) : undefined].filter(Boolean);
+    assert(recipients.length > 0, 404, 'RECIPIENT_NOT_FOUND', 'No notification recipient was found');
+    const sent: string[] = [];
+    for (const recipient of recipients) {
+      const user = recipient!;
+      await store.createNotification({ userId: user.id, title: input.title, message: input.message, channels: input.channels });
+      if (input.channels.includes('sms')) { assert(user.phone, 400, 'RECIPIENT_PHONE_MISSING', 'A phone number is required for SMS delivery'); await messaging.sendNotification('sms', user.phone, input.title, input.message); }
+      if (input.channels.includes('email')) { assert(user.email, 400, 'RECIPIENT_EMAIL_MISSING', 'An email address is required for email delivery'); await messaging.sendNotification('email', user.email, input.title, input.message); }
+      sent.push(user.id);
+    }
+    await store.audit('admin.notification_sent', { ...clientMeta(req), userId: req.user!.id, metadata: { recipients: sent.length, channels: input.channels } });
+    res.status(201).json({ sent: sent.length, channels: input.channels });
+  });
   app.post('/api/v1/bookings', requireAuth(store), async (req, res) => {
     const input = toInput(bookingRequest, req.body);
     const booking = await store.createBooking({ userId: req.user!.id, vertical: input.vertical, request: input.payload });
@@ -180,7 +199,7 @@ export function buildApp() {
   app.post('/api/v1/payments/intents', requireAuth(store), async (req, res) => {
     const input = toInput(paymentRequest, req.body);
     const booking = await store.findBooking(input.bookingId, req.user!.id); assert(booking, 404, 'BOOKING_NOT_FOUND', 'Booking not found'); assert(booking.status !== 'cancelled', 409, 'BOOKING_CANCELLED', 'Cannot pay for a cancelled booking');
-    const paymentRecord = await store.createPayment({ bookingId: booking.id, userId: req.user!.id, provider: config.paymentMode === 'live' ? 'configured' : 'mock', amount: input.amount, currency: input.currency.toUpperCase(), status: 'created' });
+    const paymentRecord = await store.createPayment({ bookingId: booking.id, userId: req.user!.id, provider: 'configured', amount: input.amount, currency: input.currency.toUpperCase(), status: 'created' });
     const providerResponse: any = await payment.createIntent({ paymentId: paymentRecord.id, bookingId: booking.id, amount: input.amount, currency: input.currency.toUpperCase(), customerId: req.user!.id, returnUrl: `${config.appOrigin}/payment/return` });
     const updated = await store.updatePayment(paymentRecord.id, { status: providerResponse?.status === 'paid' ? 'paid' : 'pending', transactionRef: providerResponse?.transactionRef, providerPayload: providerResponse });
     res.status(201).json({ payment: updated ?? paymentRecord, checkoutUrl: providerResponse?.checkoutUrl });

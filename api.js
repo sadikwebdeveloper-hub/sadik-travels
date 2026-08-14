@@ -1,4 +1,4 @@
-/* Shared same-origin API client for the Amy website and admin console. */
+/* Shared same-origin API client for the Sadik Travels website and admin console. */
 (() => {
   const bodyConfig = document.body?.dataset || {};
   const config = window.APP_CONFIG || {};
@@ -23,5 +23,5 @@
     return payload;
   }
 
-  window.AmyApi = Object.freeze({ baseUrl, request, get: path => request(path), post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }), patch: (path, body) => request(path, { method: 'PATCH', body: JSON.stringify(body) }), delete: path => request(path, { method: 'DELETE' }) });
+  window.SadikApi = Object.freeze({ baseUrl, request, get: path => request(path), post: (path, body) => request(path, { method: 'POST', body: JSON.stringify(body) }), patch: (path, body) => request(path, { method: 'PATCH', body: JSON.stringify(body) }), delete: path => request(path, { method: 'DELETE' }) });
 })();

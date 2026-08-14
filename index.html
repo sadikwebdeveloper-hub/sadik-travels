@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Amy: The First Online Travel Agency in Bangladesh</title>
-  <meta name="description" content="Book flights, hotels, homes, visa services and eSIMs with Amy." />
+  <title>Sadik Travels | Online Travel Agency</title>
+  <meta name="description" content="Book flights, hotels, homes, visa services and eSIMs with Sadik Travels." />
   <link rel="icon" type="image/png" href="assets/images__favicon-32x32.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -16,6 +16,7 @@
     <symbol id="i-passport" viewBox="0 0 24 24"><path d="M5 3.5h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2Zm0 0v17M8 8.2h6M8 11h6M8 13.8h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="8.9" r="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
     <symbol id="i-sim" viewBox="0 0 24 24"><path d="M7 3h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 11h6v6H9zM11 11v6M13 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
     <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 3v15M15 6v15" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 10a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 22h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 13v-1a8 8 0 0 1 16 0v1M4 13h3v5H5a1 1 0 0 1-1-1v-4Zm16 0h-3v5h2a1 1 0 0 0 1-1v-4ZM9 20h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.2 19 6v5.4c0 4.2-2.6 7.7-7 9.4-4.4-1.7-7-5.2-7-9.4V6l7-2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8.6 13.1-1 7 4.4-2.3 4.4 2.3-1-7M10 9l1.3 1.2L14 7.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -39,7 +40,7 @@
     <nav class="navbar" aria-label="Main navigation">
       <div class="nav-inner">
         <button class="icon-btn nav-menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false"><svg><use href="#i-menu"></use></svg></button>
-        <a class="brand" href="#top" aria-label="Amy home"><img src="assets/images__logo.png" alt="Amy online travel agency" /></a>
+        <a class="brand" href="#top" aria-label="Sadik Travels home"><img src="assets/sadik-travels-logo.png" alt="Sadik Travels online travel agency" /></a>
         <div class="nav-links" id="navLinks">
           <a class="active" href="#flights" data-nav-tab="flights">Flights</a>
           <a href="#hotels" data-nav-tab="hotels">Hotels</a>
@@ -49,6 +50,7 @@
           <a href="#offers">Offers</a>
         </div>
         <div class="nav-actions">
+          <div class="notification-wrap"><button class="nav-notifications" id="notificationBtn" aria-label="Notifications" aria-expanded="false"><svg><use href="#i-bell"></use></svg><span id="notificationCount" hidden>0</span></button><div class="notification-panel" id="notificationPanel" hidden><div class="notification-panel-head"><strong>Notifications</strong><button type="button" id="markNotificationsRead" class="text-btn">Mark all read</button></div><div id="notificationList"><div class="notification-empty">Login to see notifications.</div></div></div></div>
           <button class="nav-support" id="supportBtn"><svg><use href="#i-headset"></use></svg><span>24/7 Support</span></button>
           <button class="nav-currency" id="currencyBtn">BDT <span>⌄</span></button>
           <button class="nav-login" id="loginBtn"><svg><use href="#i-user"></use></svg><span>Login</span></button>
@@ -60,12 +62,12 @@
 
   <aside class="amy-sidebar" id="amySidebar" aria-label="Browse travel products" aria-hidden="true">
     <div class="sidebar-head">
-      <a class="sidebar-brand" href="#top"><img src="assets/images__logo.png" alt="Amy" /></a>
+      <a class="sidebar-brand" href="#top"><img src="assets/sadik-travels-logo.png" alt="Sadik Travels" /></a>
       <button class="icon-btn" id="sidebarClose" aria-label="Close menu"><svg><use href="#i-close"></use></svg></button>
     </div>
     <div class="sidebar-account">
       <div class="avatar"><svg><use href="#i-user"></use></svg></div>
-      <div><strong>Welcome to Amy</strong><span>Login to manage your trips</span></div>
+      <div><strong>Welcome to Sadik Travels</strong><span>Login to manage your trips</span></div>
       <button class="sidebar-login" id="sidebarLogin">Login</button>
     </div>
     <div class="sidebar-section-label">Travel</div>
@@ -77,7 +79,7 @@
     <a href="#esim" class="side-link" data-nav-tab="esim"><span class="side-icon"><svg><use href="#i-sim"></use></svg></span>eSIM<span class="side-arrow">›</span></a>
     <div class="sidebar-section-label">Manage</div>
     <button class="side-link side-button" id="trackBookingBtn"><span class="side-icon"><svg><use href="#i-search"></use></svg></span>Track booking<span class="side-arrow">›</span></button>
-    <button class="side-link side-button" id="supportSideBtn"><span class="side-icon"><svg><use href="#i-headset"></use></svg></span>Amy Support<span class="side-arrow">›</span></button>
+    <button class="side-link side-button" id="supportSideBtn"><span class="side-icon"><svg><use href="#i-headset"></use></svg></span>Sadik Travels Support<span class="side-arrow">›</span></button>
     <div class="sidebar-footer"><span>Bangladesh</span><span>English</span></div>
   </aside>
 
@@ -87,7 +89,7 @@
         <div class="hero-intro">
           <h1 class="tagline">উড়াল দিন</h1>
           <div class="hero-features">
-            <div><svg><use href="#i-headset"></use></svg>24/7 Amy Support Team</div>
+            <div><svg><use href="#i-headset"></use></svg>24/7 Sadik Travels Support Team</div>
             <div><svg><use href="#i-shield"></use></svg>Secure &amp; Easy Payment</div>
             <div><svg><use href="#i-award"></use></svg>Award-winning</div>
           </div>
@@ -177,7 +179,7 @@
 
             <section class="tab-pane" id="homes" role="tabpanel" hidden>
               <form class="search-card" id="homesForm">
-                <div class="modifier-row"><div class="trip-type field-group compact-group"><label class="radio-label"><input type="radio" name="homesType" value="rent" checked /><span>Rent</span></label><label class="radio-label"><input type="radio" name="homesType" value="buy" /><span>Buy</span></label></div><span class="form-hint">Smart property solutions from Amy Homes</span></div>
+                <div class="modifier-row"><div class="trip-type field-group compact-group"><label class="radio-label"><input type="radio" name="homesType" value="rent" checked /><span>Rent</span></label><label class="radio-label"><input type="radio" name="homesType" value="buy" /><span>Buy</span></label></div><span class="form-hint">Smart property solutions from Sadik Homes</span></div>
                 <div class="hotel-search-grid homes-grid"><div class="form-field autocomplete-field" data-autocomplete="city"><label for="homeDestination"><svg><use href="#i-location"></use></svg>Location</label><div class="input-shell"><input id="homeDestination" autocomplete="off" placeholder="Search City or Area" value="Dhaka" /><svg><use href="#i-search"></use></svg></div><div class="suggestions" id="homeDestinationSuggestions"></div></div><div class="form-field date-field"><label for="homeCheckin"><svg><use href="#i-calendar"></use></svg>Check-In</label><div class="input-shell"><input id="homeCheckin" type="date" value="2026-08-15" /><svg><use href="#i-calendar"></use></div></div><div class="form-field date-field"><label for="homeCheckout"><svg><use href="#i-calendar"></use></svg>Check-Out</label><div class="input-shell"><input id="homeCheckout" type="date" value="2026-08-16" /><svg><use href="#i-calendar"></use></div></div></div>
                 <div class="search-actions"><button type="submit" class="btn btn-primary"><svg><use href="#i-search"></use></svg>Search Now</button></div>
               </form>
@@ -186,7 +188,7 @@
             <section class="tab-pane" id="visa" role="tabpanel" hidden>
               <form class="search-card" id="visaForm">
                 <div class="visa-search-grid"><div class="form-field autocomplete-field" data-autocomplete="country"><label for="visaCountry"><svg><use href="#i-location"></use></svg>Country</label><div class="input-shell"><input id="visaCountry" autocomplete="off" placeholder="Search Country" value="United Arab Emirates" /><svg><use href="#i-search"></use></svg></div><div class="suggestions" id="visaCountrySuggestions"></div></div><div class="form-field autocomplete-field" data-autocomplete="category"><label for="visaCategory"><svg><use href="#i-passport"></use></svg>Category</label><div class="input-shell"><input id="visaCategory" autocomplete="off" placeholder="Select Category" value="Tourist Visa" /><svg><use href="#i-search"></use></svg></div><div class="suggestions" id="visaCategorySuggestions"></div></div></div>
-                <div class="visa-note"><svg><use href="#i-shield"></use></svg><span>Visa information and application support from Amy travel experts.</span></div>
+                <div class="visa-note"><svg><use href="#i-shield"></use></svg><span>Visa information and application support from Sadik Travels experts.</span></div>
                 <div class="search-actions"><button type="submit" class="btn btn-primary"><svg><use href="#i-search"></use></svg>Search Now</button></div>
               </form>
             </section>
@@ -219,28 +221,14 @@
       <div class="container panel-block flush-panel">
         <div class="slider banner-slider" data-slider="banners">
           <div class="slider-viewport"><div class="slider-track" id="bannerTrack">
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-11Mar2026104951ICX67.jpeg" alt="Fly to Europe with Special Tour Fares" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-01Jun2026025120K3QPU.png" alt="BeFreshFX South East Money Exchange Limited" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-01Jun2026095337FR9R4.jpeg" alt="Smart Property Solution Amy Homes" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-02Aug2026104017C77ZE.jpeg" alt="10 September Umrah package Comfort" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-26Jul20260359428Q3XS.jpg" alt="Book and Fly with Thai Airways" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-16Jul2026020806KM12H.jpg" alt="Discover Singapore" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-13Jul2025043701TBIWF.jpg" alt="Experience Affordable Travel with the Best Fares on Air Arabia" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-13Jul20260400089C84U.jpg" alt="Salam Air Special Fare" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-23Mar2025100010NEU5G.jpg" alt="SalamAir Special Fares Available on All Sectors" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-04Jul2026103934OAVT4.jpg" alt="Eid e Miladunnabi special Umrah package" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-08Aug2026054344GCBDR.jpg" alt="Qatar Airways 10% Discount Offer" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-08Aug2026093926WXA11.jpg" alt="MasterCard Travel Campaign Offer" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-11Aug20260241453OVPL.jpg" alt="Air India DAC BOM DAC" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-11Aug2026024416GSM7N.jpg" alt="Air India DAC DEL DAC" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-11Aug2026112130ZOXRQ.jpg" alt="Jazeera Airways 30% Summer Sale Offer" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-14Mar20260926359MN6B.jpg" alt="Visa processing online with Amy" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-15Jun2026015842STAKT.jpeg" alt="Tanguar Haor" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-17Apr2025111906FSRNH.jpg" alt="EMI up to 12 Months on Flight Hotel and Tour" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-07Jul2025050601Q69NK.png" alt="eSIM" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-07May2026052446RD2G4.png" alt="Cox's Bazar Hotel 65% Discount" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-17Jul2025043118XKB1V.png" alt="Hotel booking means Amy" /></a>
-            <a class="banner-slide" href="#offer-details"><img src="assets/promotional-images__B-21Oct2025105822HGP06.jpg" alt="Malaysia Airlines Bonus Side Trip x Amy" /></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__bgice.webp" alt="Explore the world with Sadik Travels" /><span class="banner-copy"><small>Sadik Travels</small><strong>Travel further. Feel more.</strong><em>Explore curated journeys</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__maldives.jpg" alt="Island escapes with Sadik Travels" /><span class="banner-copy"><small>Go Get Tour</small><strong>Island escapes made simple</strong><em>Find your next family holiday</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__dubai.jpg" alt="Discover Dubai with Sadik Travels" /><span class="banner-copy"><small>Sadik Travels</small><strong>Discover a new skyline</strong><em>Build a trip that fits you</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__phuket.jpg" alt="Beach holidays with Sadik Travels" /><span class="banner-copy"><small>Holiday packages</small><strong>Make time for the coast</strong><em>Browse tour packages</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__singapour.png" alt="Singapore tours with Sadik Travels" /><span class="banner-copy"><small>City breaks</small><strong>See the city differently</strong><em>Plan with Sadik support</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__venice.jpg" alt="European journeys with Sadik Travels" /><span class="banner-copy"><small>World journeys</small><strong>Your route starts here</strong><em>Search live availability</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__bg7.webp" alt="Nature tours with Sadik Travels" /><span class="banner-copy"><small>Nature tours</small><strong>Take the scenic way</strong><em>Discover meaningful escapes</em></span></a>
+            <a class="banner-slide" href="#tours"><img src="assets/images__bg9.webp" alt="Travel support from Sadik Travels" /><span class="banner-copy"><small>24/7 support</small><strong>Travel with peace of mind</strong><em>Sadik Travels is here for you</em></span></a>
           </div></div>
           <button class="slider-arrow slider-prev" data-slider-prev="banners" aria-label="Previous banner"><svg><use href="#i-arrow-left"></use></svg></button>
           <button class="slider-arrow slider-next" data-slider-next="banners" aria-label="Next banner"><svg><use href="#i-arrow-right"></use></svg></button>
@@ -252,7 +240,7 @@
     <section class="tour-results-section" id="tourResultsSection" hidden aria-labelledby="tourResultsTitle">
       <div class="container tour-results-page">
         <div class="tour-breadcrumb"><a href="#top">Home</a><span>/</span><strong>Search: tour</strong></div>
-        <div class="tour-results-heading"><div><span class="tour-eyebrow">Go Get Tour</span><h2 id="tourResultsTitle">Find a tour package</h2><p>Curated journeys with easy booking, clear pricing and Amy support.</p></div><button class="btn btn-outline" id="closeTourResults">Back to search</button></div>
+        <div class="tour-results-heading"><div><span class="tour-eyebrow">Go Get Tour</span><h2 id="tourResultsTitle">Find a tour package</h2><p>Curated journeys with easy booking, clear pricing and Sadik Travels support.</p></div><button class="btn btn-outline" id="closeTourResults">Back to search</button></div>
         <div class="tour-results-layout">
           <aside class="tour-filter-panel">
             <div class="tour-filter-header"><strong>Filter tours</strong><button id="clearTourFilters" type="button" class="text-btn">Clear all</button></div>
@@ -325,7 +313,7 @@
       </div>
     </section>
 
-    <section class="stat-section" aria-label="Amy travel statistics">
+    <section class="stat-section" aria-label="Sadik Travels statistics">
       <div class="container panel-block">
         <div class="stat-div"><div class="stat-header"><span>Your</span> <span>Journey,</span> <span>Our</span> <span>Expertise.</span></div><div class="stat-footer"><span>Discover</span> <span>the</span> <span>Difference</span> <span>Today.</span></div><div class="stat-body"><div><strong>10+</strong><span>Years of Excellence</span></div><div><strong>746.36K+</strong><span>Happy Clients</span></div><div><strong>3.39M+</strong><span>Happy Travellers</span></div></div></div>
       </div>
@@ -335,7 +323,7 @@
       <div class="container panel-block section-bg">
         <div class="section-heading centered"><div><h2 id="appTitle">Track Flights with Your all-in-one Travel App</h2></div></div>
         <div class="app-grid">
-          <div class="stores"><div class="store-row"><div class="store-card"><div class="store-rating"><div class="store-glyph">●</div><div>4.7 Rating<div class="stars">★★★★★</div></div></div><img class="qr" src="assets/images__qr-apple.svg" alt="Apple Store QR Code" /><a href="#app" class="store-badge"><img src="assets/images__amy-ios.png" alt="Download on the App Store" /></a><span>App Store</span></div><div class="store-card"><div class="store-rating"><div class="store-glyph play">▶</div><div>4.7 Rating<div class="stars">★★★★★</div></div></div><img class="qr" src="assets/images__qr-google.svg" alt="Google Play Store QR Code" /><a href="#app" class="store-badge"><img src="assets/images__amy-android.png" alt="Get it on Google Play" /></a><span>Google Play</span></div></div><p>Scan the QR code to download the app</p></div>
+          <div class="stores"><div class="store-row"><div class="store-card"><div class="store-rating"><div class="store-glyph">●</div><div>4.7 Rating<div class="stars">★★★★★</div></div></div><img class="qr" src="assets/images__qr-apple.svg" alt="Apple Store QR Code" /><a href="#app" class="store-badge"><span class="store-badge-text">Download on the App Store</span></a><span>App Store</span></div><div class="store-card"><div class="store-rating"><div class="store-glyph play">▶</div><div>4.7 Rating<div class="stars">★★★★★</div></div></div><img class="qr" src="assets/images__qr-google.svg" alt="Google Play Store QR Code" /><a href="#app" class="store-badge"><span class="store-badge-text">Get it on Google Play</span></a><span>Google Play</span></div></div><p>Scan the QR code to download the app</p></div>
           <div class="app-illustration" aria-label="Flight tracking app illustration"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="orbit orbit-three"></div><div class="illustration-plane"><svg><use href="#i-plane"></use></svg></div><div class="app-phone"><div class="phone-notch"></div><div class="phone-screen"><div class="screen-line wide"></div><div class="screen-line"></div><div class="flight-mini-card"><span>DAC</span><i>✈</i><span>DXB</span></div><div class="screen-line short"></div><div class="screen-chip"></div></div></div></div>
         </div>
       </div>
@@ -345,24 +333,23 @@
   <footer class="site-footer" id="footer">
     <div class="container panel-block footer-inner">
       <div class="footer-top">
-        <div class="footer-about"><img src="assets/images__logo.png" alt="Amy" /><p>Established in 2015, Amy has become the go-to destination for travelers seeking seamless and secure online booking experiences. With a commitment to simplicity and reliability, we've redefined the way people travel.</p><div class="footer-social"><a href="#facebook" aria-label="Facebook">f</a><a href="#instagram" aria-label="Instagram">◎</a><a href="#youtube" aria-label="Youtube">▶</a><a href="#linkedin" aria-label="LinkedIn">in</a></div></div>
-        <div class="footer-links"><h3>Company</h3><a href="#about">About Amy</a><a href="#contact">Contact Us</a><a href="#careers">Careers</a><a href="#terms">Terms &amp; Conditions</a><a href="#privacy">Privacy Policy</a></div>
+        <div class="footer-about"><img src="assets/sadik-travels-logo.png" alt="Sadik Travels" /><p>Established in 2026, Sadik Travels has become the go-to destination for travelers seeking seamless and secure online booking experiences. With a commitment to simplicity and reliability, we've redefined the way people travel.</p><div class="footer-social"><a href="#facebook" aria-label="Facebook">f</a><a href="#instagram" aria-label="Instagram">◎</a><a href="#youtube" aria-label="Youtube">▶</a><a href="#linkedin" aria-label="LinkedIn">in</a></div></div>
+        <div class="footer-links"><h3>Company</h3><a href="#about">About Sadik Travels</a><a href="#contact">Contact Us</a><a href="#careers">Careers</a><a href="#terms">Terms &amp; Conditions</a><a href="#privacy">Privacy Policy</a></div>
         <div class="footer-links"><h3>Services</h3><a href="#flights">Flight Booking</a><a href="#hotels">Hotel Booking</a><a href="#visa">Visa Processing</a><a href="#esim">eSIM</a><a href="#offers">Travel Offers</a></div>
-        <div class="footer-links footer-contact"><h3>Head Office</h3><address><p>House 16, Road 11, Block H, Banani, Dhaka, Bangladesh.</p><p>Phone: <a href="tel:+8801730444521">+88 017 3044 4521</a></p><p>Email: <a href="mailto:info@amybd.com">info@amybd.com</a></p></address></div>
+        <div class="footer-links footer-contact"><h3>Head Office</h3><address><p>House 16, Road 11, Block H, Banani, Dhaka, Bangladesh.</p><p>Phone: <a href="tel:+8801730444521">+88 017 3044 4521</a></p><p>Email: <a href="mailto:info@sadiktravels.com">info@sadiktravels.com</a></p></address></div>
       </div>
       <div class="footer-offices"><div><h3>Airport Office - Chattogram</h3><p>Domestic Arrival Lounge, Shah Amanat Int. Airport, Chattogram, Bangladesh.</p><p>Phone: +88 017 3044 4542</p></div><div><h3>GEC Office - Chattogram</h3><p>Golden Plaza (5th Floor), 1692 CDA Avenue, GEC, Chattogram, Bangladesh.</p><p>Phone: +88 018 4422 6577</p></div><div><h3>Chatkhil Office - Noakhali</h3><p>Aziz Super Market, Main Road, Chatkhil, Noakhali, Bangladesh.</p><p>Phone: +88 017 3035 8950</p></div><div><h3>Sandwip Office</h3><p>Sandwip Complex, Vill: Haramia, Sandwip, Bangladesh.</p><p>Phone: +88 017 3004 2523</p></div></div>
-      <div class="footer-bottom"><span>Copyright © 2016-2026. Be Fresh PLC. All rights reserved.</span><span><strong>Amy</strong> is the online platform of <strong>BeFresh</strong></span></div>
+      <div class="footer-bottom"><span>Copyright © 2026. Sadik Travels. All rights reserved.</span><span><strong>Sadik Travels</strong> — travel made simple</span></div>
     </div>
   </footer>
 
-  <button class="chat-bubble" id="chatBubble" aria-label="Open Amy Support"><img src="assets/images__chat_laser.png" alt="Amy Chat" /><span class="chat-badge">1</span></button>
+  <button class="chat-bubble" id="chatBubble" aria-label="Open Sadik Travels Support"><img src="assets/sadik-travels-logo.png" alt="Sadik Travels Chat" /><span class="chat-badge">1</span></button>
 
   <div class="modal" id="genericModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden><div class="modal-card"><button class="modal-close" data-close-modal aria-label="Close"><svg><use href="#i-close"></use></svg></button><div id="modalContent"></div></div></div>
-  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" hidden><div class="modal-card login-card"><button class="modal-close" data-close-modal aria-label="Close"><svg><use href="#i-close"></use></svg></button><div class="modal-logo"><img src="assets/images__logo.png" alt="Amy" /></div><h2 id="loginTitle">Welcome back</h2><p class="modal-subtitle">Login securely with a one-time verification code.</p><form id="loginForm"><label class="modal-field"><span>Mobile number or email</span><input type="text" id="loginIdentity" placeholder="01XXXXXXXXX or email" autocomplete="username" required /></label><button class="btn btn-primary full-btn" id="requestOtpBtn" type="button">Send verification code</button><div id="otpStep" hidden><label class="modal-field"><span>Verification code</span><input type="text" id="loginOtp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6 digit code" autocomplete="one-time-code" /></label><button class="btn btn-primary full-btn" id="verifyOtpBtn" type="submit">Verify &amp; Login</button><button class="text-btn full-btn" id="changeIdentityBtn" type="button">Use a different number or email</button></div><div class="login-options"><label><input type="checkbox" /> Remember this device</label><button type="button" class="text-btn" id="forgotPassword">Need help?</button></div><div class="login-divider"><span>or</span></div><button type="button" class="btn btn-outline full-btn" id="createAccount">Continue as a new traveller</button></form><p class="auth-note" id="authNote">We’ll send a secure OTP. Your account is created automatically on first login.</p></div></div>
+  <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" hidden><div class="modal-card login-card"><button class="modal-close" data-close-modal aria-label="Close"><svg><use href="#i-close"></use></svg></button><div class="modal-logo"><img src="assets/sadik-travels-logo.png" alt="Sadik Travels" /></div><h2 id="loginTitle">Welcome back</h2><p class="modal-subtitle">Login securely with a one-time verification code.</p><form id="loginForm"><label class="modal-field"><span>Mobile number or email</span><input type="text" id="loginIdentity" placeholder="01XXXXXXXXX or email" autocomplete="username" required /></label><button class="btn btn-primary full-btn" id="requestOtpBtn" type="button">Send verification code</button><div id="otpStep" hidden><label class="modal-field"><span>Verification code</span><input type="text" id="loginOtp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6 digit code" autocomplete="one-time-code" /></label><button class="btn btn-primary full-btn" id="verifyOtpBtn" type="submit">Verify &amp; Login</button><button class="text-btn full-btn" id="changeIdentityBtn" type="button">Use a different number or email</button></div><div class="login-options"><label><input type="checkbox" /> Remember this device</label><button type="button" class="text-btn" id="forgotPassword">Need help?</button></div><div class="login-divider"><span>or</span></div><button type="button" class="btn btn-outline full-btn" id="createAccount">Continue as a new traveller</button></form><p class="auth-note" id="authNote">We’ll send a secure OTP. Your account is created automatically on first login.</p></div></div>
 
-  <template id="chatTemplate"><div class="chat-modal-content"><div class="chat-title-row"><div><span class="online-dot"></span> Laser Chat</div><span class="chat-status">Amy Support</span></div><div class="chat-welcome"><strong>Welcome to Amy Support Center</strong><p>Start a conversation with our travel support team.</p></div><form id="chatForm"><input name="name" placeholder="Name" required /><input name="mobile" placeholder="Mobile" required /><input name="email" type="email" placeholder="Email" required /><input name="subject" placeholder="Subject" required /><button class="btn btn-primary full-btn" type="submit">Start Chat</button></form></div></template>
-  <template id="trackTemplate"><div class="modal-heading"><div class="modal-icon blue"><svg><use href="#i-search"></use></svg></div><h2 id="modalTitle">Track your booking</h2></div><p class="modal-subtitle">Enter your booking reference and contact number to view your itinerary.</p><form id="trackForm"><label class="modal-field"><span>Booking reference</span><input required placeholder="e.g. AMY123456" /></label><label class="modal-field"><span>Mobile number</span><input required placeholder="01XXXXXXXXX" /></label><button class="btn btn-primary full-btn" type="submit">Track Booking</button></form></template>
-  <template id="resultTemplate"><div class="modal-heading"><div class="modal-icon green"><svg><use href="#i-check"></use></svg></div><h2 id="modalTitle">Search request received</h2></div><p class="modal-subtitle">This working demo has captured your request. Connect your Amy API here to show live availability and booking.</p><div class="result-summary" id="resultSummary"></div><div class="mock-results"><div><span class="result-logo">AMY</span><strong>Best available option</strong><em>Live results ready</em></div><div class="result-price">From <strong>BDT 18,450</strong></div></div><button type="button" class="btn btn-primary full-btn" data-close-modal>Continue</button></template>
+  <template id="chatTemplate"><div class="chat-modal-content"><div class="chat-title-row"><div><span class="online-dot"></span> Laser Chat</div><span class="chat-status">Sadik Travels Support</span></div><div class="chat-welcome"><strong>Welcome to Sadik Travels Support Center</strong><p>Start a conversation with our travel support team.</p></div><form id="chatForm"><input name="name" placeholder="Name" required /><input name="mobile" placeholder="Mobile" required /><input name="email" type="email" placeholder="Email" required /><input name="subject" placeholder="Subject" required /><button class="btn btn-primary full-btn" type="submit">Start Chat</button></form></div></template>
+  <template id="trackTemplate"><div class="modal-heading"><div class="modal-icon blue"><svg><use href="#i-search"></use></svg></div><h2 id="modalTitle">Track your booking</h2></div><p class="modal-subtitle">Enter your booking reference and contact number to view your itinerary.</p><form id="trackForm"><label class="modal-field"><span>Booking reference</span><input required placeholder="e.g. ST123456" /></label><label class="modal-field"><span>Mobile number</span><input required placeholder="01XXXXXXXXX" /></label><button class="btn btn-primary full-btn" type="submit">Track Booking</button></form></template>
 
   <script>window.APP_CONFIG={apiBase:'/api/v1',liveApi:true};</script>
   <script src="api.js"></script>

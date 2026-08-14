@@ -18,7 +18,7 @@ const escapeHtml = (value) => String(value).replace(/[&<>\"']/g, character => ({
 const appConfig = window.APP_CONFIG || { apiBase: document.body?.dataset.apiBase || '', liveApi: document.body?.dataset.liveApi === 'true' };
 const API_BASE = appConfig.apiBase || '';
 
-const apiRequest = (path, options = {}, canRefresh = true) => window.AmyApi.request(path, options, canRefresh);
+const apiRequest = (path, options = {}, canRefresh = true) => window.SadikApi.request(path, options, canRefresh);
 
 function showToast(message, type = '') {
   const region = $('#toastRegion');
@@ -255,9 +255,9 @@ function buildSearchSummary(type) {
     return `<strong>Flights · ${trip}</strong><br>${$('#fromAirport').value || 'Dhaka (DAC)'} → ${$('#toAirport').value || 'Dubai (DXB)'}<br><span>${formatDate($('#departureDate').value)} · ${passengers} · ${$('#cabinValue').textContent}</span>`;
   }
   if (type === 'hotel') return `<strong>Hotels</strong><br>${$('#hotelDestination').value || "Cox's Bazar"}<br><span>${formatDate($('#checkinDate').value)} to ${formatDate($('#checkoutDate').value)} · ${$('#guestValue').textContent}</span>`;
-  if (type === 'homes') return `<strong>Amy Homes · ${$('input[name="homesType"]:checked')?.value === 'buy' ? 'Buy' : 'Rent'}</strong><br>${$('#homeDestination').value || 'Dhaka'}<br><span>${formatDate($('#homeCheckin').value)} to ${formatDate($('#homeCheckout').value)}</span>`;
+  if (type === 'homes') return `<strong>Sadik Homes · ${$('input[name="homesType"]:checked')?.value === 'buy' ? 'Buy' : 'Rent'}</strong><br>${$('#homeDestination').value || 'Dhaka'}<br><span>${formatDate($('#homeCheckin').value)} to ${formatDate($('#homeCheckout').value)}</span>`;
   if (type === 'visa') return `<strong>Visa services</strong><br>${$('#visaCountry').value || 'United Arab Emirates'} · ${$('#visaCategory').value || 'Tourist Visa'}`;
-  return `<strong>eSIM</strong><br>${$('#esimDestination').value || 'Singapore'}<br><span>Instant travel connectivity with Amy</span>`;
+  return `<strong>eSIM</strong><br>${$('#esimDestination').value || 'Singapore'}<br><span>Instant travel connectivity with Sadik Travels</span>`;
 }
 
 function openModal(modal) {
@@ -280,11 +280,7 @@ function openTemplateModal(templateId, summary = '') {
 
 function bindDynamicModalEvents() {
   $('#trackForm')?.addEventListener('submit', event => { event.preventDefault(); showToast('Demo booking found. Live tracking can be connected to your booking API.', 'success'); closeModal($('#genericModal')); });
-  $('#chatForm')?.addEventListener('submit', event => { event.preventDefault(); showToast('Thanks. Amy Support will contact you shortly.', 'success'); closeModal($('#genericModal')); });
-}
-
-function openSearchResult(type) {
-  openTemplateModal('resultTemplate', buildSearchSummary(type));
+  $('#chatForm')?.addEventListener('submit', event => { event.preventDefault(); showToast('Thanks. Sadik Travels Support will contact you shortly.', 'success'); closeModal($('#genericModal')); });
 }
 
 function searchPayload(type) {
@@ -350,7 +346,7 @@ async function searchTours(query, updateUrl = true) {
 }
 function openTourDetails(tour) {
   const modal = $('#genericModal');
-  $('#modalContent').innerHTML = `<div class="tour-detail-modal"><img class="tour-detail-image" src="${escapeHtml(tourImage(tour))}" alt="${escapeHtml(tour.title)}" /><div class="modal-heading"><div class="modal-icon blue">${icon('i-map')}</div><h2 id="modalTitle">${escapeHtml(tour.title)}</h2></div><p class="modal-subtitle">${escapeHtml(tour.durationDays)} days / ${escapeHtml(tour.durationNights)} nights · ${escapeHtml(tour.country)}</p><p class="tour-detail-description">${escapeHtml(tour.description || 'A carefully planned journey with Amy support.')}</p><div class="result-summary"><strong>Starting from ৳${Number(tour.priceBdt).toLocaleString('en-BD')} per person</strong><br><span>${tour.destinations.map(escapeHtml).join(' · ')}</span></div><form id="tourBookForm"><label class="modal-field"><span>Travellers</span><input id="tourTravellers" type="number" min="1" max="30" value="2" required /></label><label class="modal-field"><span>Preferred travel date</span><input id="tourTravelDate" type="date" required /></label><button class="btn btn-primary full-btn" type="submit">Book this tour</button></form></div>`;
+  $('#modalContent').innerHTML = `<div class="tour-detail-modal"><img class="tour-detail-image" src="${escapeHtml(tourImage(tour))}" alt="${escapeHtml(tour.title)}" /><div class="modal-heading"><div class="modal-icon blue">${icon('i-map')}</div><h2 id="modalTitle">${escapeHtml(tour.title)}</h2></div><p class="modal-subtitle">${escapeHtml(tour.durationDays)} days / ${escapeHtml(tour.durationNights)} nights · ${escapeHtml(tour.country)}</p><p class="tour-detail-description">${escapeHtml(tour.description || 'A carefully planned journey with Sadik Travels support.')}</p><div class="result-summary"><strong>Starting from ৳${Number(tour.priceBdt).toLocaleString('en-BD')} per person</strong><br><span>${tour.destinations.map(escapeHtml).join(' · ')}</span></div><form id="tourBookForm"><label class="modal-field"><span>Travellers</span><input id="tourTravellers" type="number" min="1" max="30" value="2" required /></label><label class="modal-field"><span>Preferred travel date</span><input id="tourTravelDate" type="date" required /></label><button class="btn btn-primary full-btn" type="submit">Book this tour</button></form></div>`;
   openModal(modal);
   $('#tourBookForm')?.addEventListener('submit', async event => {
     event.preventDefault();
@@ -400,7 +396,7 @@ function openBookingNextSteps(booking) {
 }
 
 async function submitSearch(type) {
-  if (!appConfig.liveApi) { openSearchResult(type); return; }
+  if (!appConfig.liveApi) { showToast('Live API is not configured.', 'error'); return; }
   try {
     const payload = searchPayload(type);
     const response = await apiRequest(`/search/${type}`, { method: 'POST', body: JSON.stringify(payload) });
@@ -421,8 +417,25 @@ $('#closeTourResults')?.addEventListener('click', () => { $('#tourResultsSection
 
 let otpChallengeId = '';
 let currentUser = null;
+let notificationsCache = [];
+function renderNotifications() {
+  const list = $('#notificationList');
+  const count = $('#notificationCount');
+  if (!list || !count) return;
+  const unread = notificationsCache.filter(item => !item.readAt).length;
+  count.textContent = unread > 99 ? '99+' : String(unread);
+  count.hidden = unread === 0;
+  list.innerHTML = notificationsCache.length ? notificationsCache.map(item => `<button type="button" class="notification-item ${item.readAt ? 'read' : 'unread'}" data-notification-id="${escapeHtml(item.id)}"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.message)}</span><small>${new Date(item.createdAt).toLocaleString()}</small></button>`).join('') : '<div class="notification-empty">No notifications yet.</div>';
+  $$('.notification-item', list).forEach(item => item.addEventListener('click', async () => { if (item.classList.contains('unread')) { await apiRequest(`/notifications/${item.dataset.notificationId}/read`, { method: 'PATCH' }).catch(() => undefined); await loadNotifications(); } }));
+}
+async function loadNotifications() { if (!currentUser) { notificationsCache = []; renderNotifications(); return; } try { const response = await apiRequest('/notifications'); notificationsCache = response.notifications || []; renderNotifications(); } catch { notificationsCache = []; renderNotifications(); } }
+$('#notificationBtn')?.addEventListener('click', async event => { event.stopPropagation(); if (!currentUser) { openLogin(); return; } const panel = $('#notificationPanel'); panel.hidden = !panel.hidden; $('#notificationBtn').setAttribute('aria-expanded', String(!panel.hidden)); if (!panel.hidden) await loadNotifications(); });
+$('#markNotificationsRead')?.addEventListener('click', async () => { await Promise.all(notificationsCache.filter(item => !item.readAt).map(item => apiRequest(`/notifications/${item.id}/read`, { method: 'PATCH' }).catch(() => undefined))); await loadNotifications(); });
+document.addEventListener('click', event => { if (!event.target.closest('.notification-wrap')) { $('#notificationPanel')?.setAttribute('hidden', ''); $('#notificationBtn')?.setAttribute('aria-expanded', 'false'); } });
+
 function updateAuthUi(user) {
   currentUser = user || null;
+  void loadNotifications();
   const label = currentUser ? 'My Account' : 'Login';
   const loginLabel = $('#loginBtn span');
   if (loginLabel) loginLabel.textContent = label;
@@ -469,11 +482,11 @@ $('#loginForm')?.addEventListener('submit', async event => {
     const response = await apiRequest('/auth/verify-otp', { method: 'POST', body: JSON.stringify({ challengeId: otpChallengeId, code: $('#loginOtp').value.trim() }) });
     closeModal($('#loginModal'));
     updateAuthUi(response.user);
-    showToast('Welcome back to Amy.', 'success');
+    showToast('Welcome back to Sadik Travels.', 'success');
     $('#requestOtpBtn').disabled = false;
   } catch (error) { showToast(error.message || 'Unable to verify OTP.', 'error'); }
 });
-$('#forgotPassword')?.addEventListener('click', () => showToast('Amy uses passwordless OTP login. Contact support if you cannot access your number or email.'));
+$('#forgotPassword')?.addEventListener('click', () => showToast('Sadik Travels uses passwordless OTP login. Contact support if you cannot access your number or email.'));
 $('#createAccount')?.addEventListener('click', () => { showToast('New accounts are created automatically after OTP verification.'); $('#loginIdentity')?.focus(); });
 
 function openChat() { openTemplateModal('chatTemplate'); }
@@ -497,7 +510,7 @@ document.addEventListener('keydown', event => {
 
 function openHotelDetails(title) {
   const modal = $('#genericModal');
-  $('#modalContent').innerHTML = `<div class="modal-heading"><div class="modal-icon blue">${icon('i-hotel')}</div><h2 id="modalTitle">${title}</h2></div><p class="modal-subtitle">Comfortable stays and easy booking with Amy.</p><div class="result-summary"><strong>Cox's Bazar</strong><br><span>Choose your dates, room and guests to see the best available rate.</span></div><button type="button" class="btn btn-primary full-btn" id="hotelBookCta">Search rooms</button>`;
+  $('#modalContent').innerHTML = `<div class="modal-heading"><div class="modal-icon blue">${icon('i-hotel')}</div><h2 id="modalTitle">${title}</h2></div><p class="modal-subtitle">Comfortable stays and easy booking with Sadik Travels.</p><div class="result-summary"><strong>Cox's Bazar</strong><br><span>Choose your dates, room and guests to see the best available rate.</span></div><button type="button" class="btn btn-primary full-btn" id="hotelBookCta">Search rooms</button>`;
   openModal(modal);
   $('#hotelBookCta')?.addEventListener('click', () => { closeModal(modal); activateTab('hotels', true); showToast('Hotel search is ready. Select your stay details to continue.'); });
 }

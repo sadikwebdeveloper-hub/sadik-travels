@@ -1,6 +1,6 @@
-# Amy travel website + MongoDB backend
+# Sadik Travels website + MongoDB backend
 
-This project contains the Amy-style travel storefront, the Go Get Tour catalogue, and a separate Node.js/TypeScript backend in `backend/`.
+This project contains the Sadik Travels-style travel storefront, the Go Get Tour catalogue, and a separate Node.js/TypeScript backend in `backend/`.
 
 ## Run the full app
 
@@ -15,13 +15,13 @@ Open `http://localhost:8787`.
 
 The backend serves the UI and API from one origin. The browser uses the shared `api.js` client for authentication, search, tour results, bookings, payments, account actions, and admin requests.
 
-> The default `.env.example` uses MongoDB. For a UI-only preview without MongoDB, set `DATA_MODE=memory` and keep the mock providers enabled.
+> The default `.env.example` uses MongoDB. The backend does not seed demo tours or return fake travel/payment results; real records are created through the admin console and live provider adapters.
 
 ## Folder structure
 
 ```text
 /
-├── index.html                 # Amy storefront
+├── index.html                 # Sadik Travels storefront
 ├── styles.css                 # Storefront styles
 ├── app.js                    # Storefront interactions
 ├── api.js                    # Shared same-origin API client
@@ -50,7 +50,7 @@ Set:
 
 ```env
 DATA_MODE=mongodb
-MONGODB_URI=mongodb://127.0.0.1:27017/amy
+MONGODB_URI=mongodb://127.0.0.1:27017/sadik_travels
 ```
 
 Mongoose creates the collections and indexes used by:
@@ -64,12 +64,7 @@ Mongoose creates the collections and indexes used by:
 - Tour packages
 - Audit logs
 
-Seed the development Go Get Tour packages into MongoDB with:
-
-```bash
-cd backend
-npm run seed
-```
+Tour packages are not seeded. Create and manage every package through the admin console at `/admin`.
 
 ## Go Get Tour
 
@@ -99,7 +94,7 @@ Admin users authenticate with the same OTP flow and can create, edit, publish, d
 
 ## Production
 
-The API is production-oriented but live bookings, payments, messaging, and supplier inventory require real provider credentials and contracts. Production configuration intentionally refuses unsafe values such as mock providers, memory storage, echoed OTPs, insecure cookies, missing MongoDB, or missing Redis.
+The API is production-oriented but live bookings, payments, messaging, and supplier inventory require real provider credentials and contracts. Production configuration refuses unsafe values such as memory storage, echoed OTPs, insecure cookies, missing MongoDB, missing Redis, missing BulkSMSBD credentials, or missing SMTP settings.
 
 See:
 

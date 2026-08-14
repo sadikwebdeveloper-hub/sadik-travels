@@ -4,7 +4,7 @@ let otpChallengeId = '';
 let tours = [];
 const escapeHtml = value => String(value ?? '').replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[c]));
 
-const api = (path, options = {}) => window.AmyApi.request(path, options);
+const api = (path, options = {}) => window.SadikApi.request(path, options);
 function toast(message, type = '') { const node = document.createElement('div'); node.className = `admin-toast ${type}`; node.textContent = message; $('#adminToast').appendChild(node); setTimeout(() => node.remove(), 3500); }
 function setLoading(button, loading) { if (!button) return; button.disabled = loading; button.dataset.original = button.dataset.original || button.textContent; button.textContent = loading ? 'Please wait…' : button.dataset.original; }
 
@@ -78,7 +78,7 @@ async function archiveTour(id) {
 function resetEditor() {
   $('#editTourId').value = '';
   $('#editorTitle').textContent = 'New tour package';
-  $('#editorSubtitle').textContent = 'Add a package to the Amy catalogue.';
+  $('#editorSubtitle').textContent = 'Add a package to the Sadik Travels catalogue.';
   $('#tourEditorForm').reset();
   $('#editCountry').value = 'Bangladesh'; $('#editDays').value = 3; $('#editNights').value = 2; $('#editPrice').value = 6500; $('#editStatus').value = 'draft'; $('#editFeatured').checked = false;
 }
@@ -101,5 +101,7 @@ $('#cancelEditBtn').addEventListener('click', resetEditor); $('#cancelEditBtn2')
 let filterTimer;
 $('#adminTourSearch').addEventListener('input', () => { clearTimeout(filterTimer); filterTimer = setTimeout(() => void loadTours(), 250); });
 $('#adminStatusFilter').addEventListener('change', () => void loadTours());
+$('#notificationAllUsers').addEventListener('change', event => { $('#notificationIdentity').disabled = event.target.checked; if (event.target.checked) $('#notificationIdentity').value = ''; });
+$('#notificationForm').addEventListener('submit', async event => { event.preventDefault(); const allUsers = $('#notificationAllUsers').checked; const identity = $('#notificationIdentity').value.trim(); if (!allUsers && !identity) { toast('Enter a recipient or choose all active users.', 'error'); return; } const channels = $$('input[name="notificationChannel"]:checked').map(input => input.value); if (!channels.length) { toast('Select at least one channel.', 'error'); return; } const button = $('#sendNotificationBtn'); setLoading(button, true); try { const result = await api('/api/v1/admin/notifications', { method: 'POST', body: JSON.stringify({ identity: identity || undefined, allUsers, title: $('#notificationTitle').value.trim(), message: $('#notificationMessage').value.trim(), channels }) }); toast(`Notification sent to ${result.sent} recipient${result.sent === 1 ? '' : 's'}.`, 'success'); $('#notificationForm').reset(); $('#notificationIdentity').disabled = false; } catch (error) { toast(error.message || 'Unable to send notification.', 'error'); } finally { setLoading(button, false); } });
 
 void loadWorkspace();

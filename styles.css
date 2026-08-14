@@ -86,3 +86,20 @@
 @media(max-width:767px){.global-search{display:none}.nav-app{display:none!important}}
 .global-search-suggestions button strong{display:block;font-size:.76rem}.global-search-suggestions button small{display:block;color:var(--muted);font-size:.67rem;margin-top:2px}
 @media(min-width:1024px){.site-footer{margin-left:218px}}
+
+/* Interaction and accessibility hardening */
+:focus-visible{outline:3px solid rgba(0,79,220,.35);outline-offset:2px}
+body.sidebar-open{overflow:hidden}
+.store-badge{border:0;cursor:pointer;background:transparent;padding:0}
+.result-unavailable{color:#8b5b0a;background:#fff6dc;border-radius:6px;padding:6px 8px;font-size:.68rem;white-space:nowrap}
+@media(min-width:1024px){
+  .amy-sidebar.desktop-collapsed{transform:translateX(-105%);visibility:hidden}
+  body.desktop-sidebar-collapsed main{padding-left:0}
+  body.desktop-sidebar-collapsed .site-footer{margin-left:0}
+  body.desktop-sidebar-collapsed .nav-menu-toggle{background:var(--brand-soft);color:var(--brand)}
+}
+@media(max-width:1023px){
+  .amy-sidebar{visibility:visible}
+  .amy-sidebar[aria-hidden="true"]{pointer-events:none}
+}
+@media(prefers-reduced-motion:reduce){.slider-track,.card-track{transition:none!important}}

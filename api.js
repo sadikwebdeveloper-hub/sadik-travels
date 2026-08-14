@@ -2,14 +2,15 @@
 (() => {
   const bodyConfig = document.body?.dataset || {};
   const config = window.APP_CONFIG || {};
-  const baseUrl = config.apiBase || bodyConfig.apiBase || '/api/v1';
+  const baseUrl = String(config.apiBase || bodyConfig.apiBase || '/api/v1').replace(/\/$/, '');
 
   async function request(path, options = {}, canRefresh = true) {
-    const requestOptions = { credentials: 'include', headers: { 'content-type': 'application/json', ...(options.headers || {}) }, ...options };
+    const headers = { accept: 'application/json', ...(options.body ? { 'content-type': 'application/json' } : {}), ...(options.headers || {}) };
+    const requestOptions = { credentials: 'include', ...options, headers };
     const relativePath = path.startsWith(baseUrl) ? path.slice(baseUrl.length) || '/' : (path.startsWith('/') ? path : `/${path}`);
     const response = await fetch(`${baseUrl}${relativePath}`, requestOptions);
     let payload = {};
-    try { payload = await response.json(); } catch { /* empty response */ }
+    try { payload = await response.json(); } catch { /* empty 204 response */ }
     const skipRefresh = path.includes('/auth/') || path.includes('/admin/me');
     if (response.status === 401 && canRefresh && !skipRefresh) {
       try { await request('/auth/refresh', { method: 'POST' }, false); return request(path, options, false); } catch { /* keep original auth error */ }

@@ -70,7 +70,7 @@ This project includes `render.yaml`.
 Recommended Render settings:
 
 ```text
-Build command: npm ci && npm run build
+Build command: npm ci --include=dev && npm run build
 Start command: npm start
 Health check: /healthz
 ```
@@ -94,11 +94,11 @@ The Render service serves both frontend and backend from the same origin, so no 
 
 ## Admin integrations and notifications
 
-The admin console contains a secure integrations workspace for SSLCommerz, bKash, BulkSMSBD, SMTP email, live travel providers, brand contact fields, role management, product visibility toggles for Flights, Hotels, Homes, Visa, Tours and eSIM, and provider test actions. Secret values are encrypted with `SETTINGS_MASTER_KEY` and displayed masked after saving.
+The admin console contains a secure integrations workspace for SSLCommerz, bKash, BulkSMSBD, SMTP email, live travel providers, brand contact fields, role management, product visibility toggles for Flights, Hotels, Homes, Visa, Tours and eSIM, provider test actions, a real booking assignment/lifecycle queue, support-ticket management, dashboard metrics from SQLite, and a persisted content studio for destinations, hotels, homes, visa, eSIM, offers, banners, airlines, FAQs and company blocks. Secret values are encrypted with `SETTINGS_MASTER_KEY` and displayed masked after saving.
 
 Admin users can also send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
 
-SMS can use the configured JSON gateway or BulkSMSBD fallback. Email uses SMTP.
+SMS can use a configured form-data custom gateway or BulkSMSBD fallback. Email uses SMTP. If a provider is not configured, the UI reports an explicit unavailable state rather than simulating delivery. The temporary credentials previously shared during setup should be rotated and are not stored in this project.
 
 ## Checks
 

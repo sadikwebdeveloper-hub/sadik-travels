@@ -11,7 +11,8 @@ const state = {
   bannerIndex: 0,
   cardIndexes: { hotels: 0, transit: 0, destinations: 0 },
   autoBanner: null,
-  features: { flights: true, hotels: true, homes: true, visa: true, tours: true, esim: true }
+  features: { flights: true, hotels: true, homes: true, visa: true, tours: true, esim: true },
+  serviceStatuses: { flights: 'active', hotels: 'active', homes: 'active', visa: 'active', tours: 'active', esim: 'active' }
 };
 
 const icon = (id) => `<svg><use href="#${id}"></use></svg>`;
@@ -33,11 +34,14 @@ async function applySiteSettings() {
     if (supportPhone) document.querySelectorAll('[data-support-phone]').forEach(node => { node.textContent = supportPhone; node.href = `tel:${supportPhone.replace(/[^+\d]/g, '')}`; });
     if (supportEmail) document.querySelectorAll('[data-support-email]').forEach(node => { node.textContent = supportEmail; node.href = `mailto:${supportEmail}`; });
     const featureTargets = ['flights', 'hotels', 'homes', 'visa', 'tours', 'esim'];
+    const serviceStatuses = { ...state.serviceStatuses, ...(response.serviceStatuses || {}) };
+    state.serviceStatuses = serviceStatuses;
     featureTargets.forEach(name => {
       const enabled = features[name] !== false;
+      const serviceStatus = serviceStatuses[name] || (enabled ? 'active' : 'hidden');
       document.querySelectorAll(`.travel-tab[data-target="${name}"], [data-nav-tab="${name}"], #${name}`).forEach(element => {
         if (element.classList.contains('tab-pane')) element.hidden = !enabled;
-        else element.style.display = enabled ? '' : 'none';
+        else { element.style.display = enabled ? '' : 'none'; element.dataset.serviceStatus = serviceStatus; if (serviceStatus === 'maintenance') { element.title = `${name[0].toUpperCase()}${name.slice(1)} is temporarily under maintenance`; element.classList.add('service-maintenance'); } }
       });
     });
     const activePane = document.querySelector('.tab-pane.active');
@@ -466,6 +470,8 @@ function openTourResultsSection() {
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 async function searchTours(query, updateUrl = true) {
+  if (state.serviceStatuses.tours === 'maintenance') { showToast('Tours are temporarily under maintenance.', 'error'); return; }
+  if (state.serviceStatuses.tours === 'hidden' || state.serviceStatuses.tours === 'archived') { showToast('Tours are currently unavailable.', 'error'); return; }
   try {
     const url = new URL(`${API_BASE}/tours`, window.location.origin);
     if (query.destination) url.searchParams.set('destination', query.destination);
@@ -558,6 +564,8 @@ function validateSearchPayload(type, payload) {
   return '';
 }
 async function submitSearch(type) {
+  if (state.serviceStatuses[type] === 'maintenance') { showToast(`${type[0].toUpperCase()}${type.slice(1)} is temporarily under maintenance.`, 'error'); return; }
+  if (state.serviceStatuses[type] === 'archived' || state.serviceStatuses[type] === 'hidden') { showToast(`${type[0].toUpperCase()}${type.slice(1)} is currently unavailable.`, 'error'); return; }
   if (!appConfig.liveApi) { showToast('Live API is not configured.', 'error'); return; }
   try {
     const payload = searchPayload(type);

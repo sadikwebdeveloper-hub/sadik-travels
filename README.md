@@ -81,7 +81,10 @@ Health check: /healthz
 Set the required environment variables in Render, including:
 
 - `SQLITE_PATH=/var/data/sadik.sqlite`
+- `APP_ORIGIN` and `CORS_ORIGINS` (plain HTTPS origins)
 - `JWT_SECRET`
+- `SETTINGS_MASTER_KEY`
+- `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` for first-run bootstrap, then remove them
 - `ADMIN_IDENTITIES`
 - `SMS_PROVIDER`
 - `SMS_GATEWAY_URL`
@@ -102,6 +105,35 @@ The admin console contains a secure integrations workspace for SSLCommerz, bKash
 Admin users can also send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
 
 SMS can use a configured form-data custom gateway or BulkSMSBD fallback. Email uses SMTP. If a provider is not configured, the UI reports an explicit unavailable state rather than simulating delivery. The temporary credentials previously shared during setup should be rotated and are not stored in this project.
+
+## Admin application routes
+
+The admin console is a single authenticated application with logical history routes, not one long static form. It includes:
+
+```text
+/admin
+/admin/bookings
+/admin/bookings/:id
+/admin/services
+/admin/flights
+/admin/hotels
+/admin/homes
+/admin/visa
+/admin/tours
+/admin/esim
+/admin/content
+/admin/customers
+/admin/customers/:id
+/admin/payments
+/admin/notifications
+/admin/support
+/admin/support/:id
+/admin/settings
+/admin/users
+/admin/audit-logs
+```
+
+Service visibility is stored in SQLite-backed settings with `active`, `hidden`, `maintenance`, and `archived` states. Hiding or archiving a service updates customer-facing visibility but never deletes booking or catalogue records. Admin API permissions are enforced server-side for finance, support, content, service visibility, settings, user management, and audit operations.
 
 ## Checks
 

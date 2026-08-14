@@ -12,12 +12,12 @@
     <header class="admin-header"><a class="admin-brand" href="/"><img data-brand-logo src="assets/sadik-travels-logo.png?v=3" alt="Sadik Travels" /><span>Admin Console</span></a><div class="admin-header-actions"><a href="/" class="admin-link">View website</a><button id="logoutBtn" class="admin-logout" hidden>Logout</button></div></header>
 
     <main class="admin-main">
-      <section class="admin-login-card" id="adminLoginCard">
+      <section class="admin-login-card" id="adminLoginCard" data-tilt-card><canvas id="authScene" aria-hidden="true"></canvas>
         <div class="admin-lock">◆</div>
         <span class="admin-eyebrow">Step-by-step secure access</span>
         <h1>Sadik Travels Admin</h1>
         <p>Use your super-admin email and password to open the management console.</p>
-        <div class="admin-login-step" id="passwordLoginStep">
+        <div class="admin-login-step is-active" id="passwordLoginStep">
           <div class="admin-step-label"><span>1</span><strong>Account credentials</strong></div>
           <form id="adminPasswordForm">
             <label><span>Super admin email</span><input id="adminPasswordIdentity" type="email" placeholder="admin@example.com" autocomplete="username" required /></label>
@@ -52,6 +52,7 @@
     </main>
   </div>
   <div class="admin-toast-region" id="adminToast" aria-live="polite"></div>
+  <script src="assets/vendor/three.min.js"></script>
   <script src="api.js"></script>
   <script src="admin.js"></script>
 </body>

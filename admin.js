@@ -7,6 +7,43 @@ const SECRET_MASK = '••••••••';
 const escapeHtml = value => String(value ?? '').replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[c]));
 
 const api = (path, options = {}) => window.SadikApi.request(path, options);
+
+function initAuthScene() {
+  const canvas = $('#authScene');
+  const card = $('#adminLoginCard');
+  const THREE = window.THREE;
+  if (!canvas || !card || !THREE || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.z = 8;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  const group = new THREE.Group();
+  scene.add(group);
+  const particleCount = 170;
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i += 1) { positions[i * 3] = (Math.random() - .5) * 9; positions[i * 3 + 1] = (Math.random() - .5) * 8; positions[i * 3 + 2] = (Math.random() - .5) * 5; }
+  const particleGeometry = new THREE.BufferGeometry();
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0x7192ff, size: .035, transparent: true, opacity: .62 }));
+  group.add(particles);
+  const blue = new THREE.MeshBasicMaterial({ color: 0x3864df, wireframe: true, transparent: true, opacity: .24 });
+  const gold = new THREE.MeshBasicMaterial({ color: 0xf4b64a, wireframe: true, transparent: true, opacity: .28 });
+  const shapes = [
+    new THREE.Mesh(new THREE.IcosahedronGeometry(.55, 1), blue), new THREE.Mesh(new THREE.OctahedronGeometry(.42, 0), gold), new THREE.Mesh(new THREE.TorusGeometry(.55, .012, 8, 32), blue), new THREE.Mesh(new THREE.BoxGeometry(.6, .6, .6), gold)
+  ];
+  shapes.forEach((shape, index) => { shape.position.set([-2.7, 2.4, -2.1, 2.2][index], [1.8, -1.8, 2.2, -2.3][index], [-.2, .5, -.4, .7][index]); shape.rotation.set(Math.random(), Math.random(), Math.random()); group.add(shape); });
+  const pointer = { x: 0, y: 0 };
+  const resize = () => { const rect = card.getBoundingClientRect(); renderer.setSize(rect.width, rect.height, false); camera.aspect = rect.width / Math.max(rect.height, 1); camera.updateProjectionMatrix(); };
+  const onPointer = event => { const rect = card.getBoundingClientRect(); pointer.x = (event.clientX - rect.left) / rect.width * 2 - 1; pointer.y = -((event.clientY - rect.top) / rect.height * 2 - 1); card.style.setProperty('--tilt-x', `${pointer.x * 2.3}deg`); card.style.setProperty('--tilt-y', `${pointer.y * 2.3}deg`); card.classList.add('tilt-ready'); };
+  const resetPointer = () => { pointer.x = 0; pointer.y = 0; card.style.setProperty('--tilt-x', '0deg'); card.style.setProperty('--tilt-y', '0deg'); };
+  card.addEventListener('pointermove', onPointer); card.addEventListener('pointerleave', resetPointer); window.addEventListener('resize', resize); resize();
+  const clock = new THREE.Clock();
+  const animate = () => { const time = clock.getElapsedTime(); group.rotation.y += .0008; group.rotation.x = Math.sin(time * .18) * .045 + pointer.y * .035; group.position.x += (pointer.x * .18 - group.position.x) * .025; group.position.y += (pointer.y * .14 - group.position.y) * .025; shapes.forEach((shape, index) => { shape.rotation.x += .0015 + index * .0003; shape.rotation.y += .002 + index * .0002; }); renderer.render(scene, camera); requestAnimationFrame(animate); };
+  animate();
+}
+
+
 function toast(message, type = '') { const node = document.createElement('div'); node.className = `admin-toast ${type}`; node.textContent = message; $('#adminToast').appendChild(node); setTimeout(() => node.remove(), 3500); }
 function setLoading(button, loading) { if (!button) return; button.disabled = loading; button.dataset.original = button.dataset.original || button.textContent; button.textContent = loading ? 'Please wait…' : button.dataset.original; }
 
@@ -31,19 +68,20 @@ $('#adminLoginForm').addEventListener('submit', async event => {
   event.preventDefault();
   if (!otpChallengeId) { toast('Request an OTP first.', 'error'); return; }
   const button = event.submitter || $('#adminLoginForm button[type="submit"]'); setLoading(button, true);
-  try { const response = await api('/api/v1/auth/verify-otp', { method: 'POST', body: JSON.stringify({ challengeId: otpChallengeId, code: $('#adminOtp').value.trim() }) }); if (!['admin', 'manager', 'super_admin'].includes(response.user?.role)) { await api('/api/v1/auth/logout', { method: 'POST' }).catch(() => undefined); throw new Error('OTP verified, but this account is not an admin. Add the identity to ADMIN_IDENTITIES and restart the server.'); } await loadWorkspace(); }
+  try { const response = await api('/api/v1/auth/verify-otp', { method: 'POST', body: JSON.stringify({ challengeId: otpChallengeId, code: $('#adminOtp').value.trim() }) }); if (!['admin', 'manager', 'super_admin'].includes(response.user?.role)) { await api('/api/v1/auth/logout', { method: 'POST' }).catch(() => undefined); throw new Error('OTP verified, but this account is not an admin. Add the identity to ADMIN_IDENTITIES and restart the server.'); } await loadWorkspace(true); }
   catch (error) { toast(error.message || 'Admin verification failed.', 'error'); }
   finally { setLoading(button, false); }
 });
 $('#logoutBtn').addEventListener('click', async () => { await api('/api/v1/auth/logout', { method: 'POST' }).catch(() => undefined); location.reload(); });
-$('#adminPasswordForm').addEventListener('submit', async event => { event.preventDefault(); const button = event.submitter || $('#adminPasswordForm button[type="submit"]'); setLoading(button, true); try { await api('/api/v1/auth/password-login', { method: 'POST', body: JSON.stringify({ identity: $('#adminPasswordIdentity').value.trim(), password: $('#adminPassword').value }) }); await loadWorkspace(); } catch (error) { toast(error.code === 'ADMIN_LOGIN_INVALID' ? 'Invalid admin credentials. Run npm run admin:create to create or reset the super admin.' : (error.message || 'Invalid super admin credentials.'), 'error'); } finally { setLoading(button, false); } });
-$('#showOtpLogin').addEventListener('click', () => { $('#passwordLoginStep').hidden = true; $('#otpLoginStep').hidden = false; $('#adminIdentity').focus(); });
-$('#backToPassword').addEventListener('click', () => { $('#otpLoginStep').hidden = true; $('#passwordLoginStep').hidden = false; });
+$('#adminPasswordForm').addEventListener('submit', async event => { event.preventDefault(); const button = event.submitter || $('#adminPasswordForm button[type="submit"]'); setLoading(button, true); try { await api('/api/v1/auth/password-login', { method: 'POST', body: JSON.stringify({ identity: $('#adminPasswordIdentity').value.trim(), password: $('#adminPassword').value }) }); await loadWorkspace(true); } catch (error) { toast(error.code === 'ADMIN_LOGIN_INVALID' ? 'Invalid admin credentials. Run npm run admin:create to create or reset the super admin.' : (error.message || 'Invalid super admin credentials.'), 'error'); } finally { setLoading(button, false); } });
+$('#showOtpLogin').addEventListener('click', () => { $('#passwordLoginStep').hidden = true; $('#passwordLoginStep').classList.remove('is-active'); $('#otpLoginStep').hidden = false; requestAnimationFrame(() => $('#otpLoginStep').classList.add('is-active')); $('#adminIdentity').focus(); });
+$('#backToPassword').addEventListener('click', () => { $('#otpLoginStep').hidden = true; $('#otpLoginStep').classList.remove('is-active'); $('#passwordLoginStep').hidden = false; requestAnimationFrame(() => $('#passwordLoginStep').classList.add('is-active')); });
 
-async function loadWorkspace() {
+async function loadWorkspace(fromLogin = false) {
   try {
     const me = await api('/api/v1/admin/me');
     currentAdmin = me.user;
+    if (fromLogin) { $('#adminLoginCard').classList.add('auth-success'); await new Promise(resolve => setTimeout(resolve, 520)); }
     $('#adminLoginCard').hidden = true;
     $('#adminWorkspace').hidden = false;
     $('#logoutBtn').hidden = false;
@@ -135,4 +173,5 @@ $('#testSmsBtn').addEventListener('click', () => void testSms());
 $('#testEmailBtn').addEventListener('click', () => void testEmail());
 $$('[data-settings-tab]').forEach(button => button.addEventListener('click', () => { const name = button.dataset.settingsTab; $$('[data-settings-tab]').forEach(item => item.classList.toggle('active', item === button)); $$('[data-settings-pane]').forEach(pane => pane.classList.toggle('active', pane.dataset.settingsPane === name)); }));
 
+initAuthScene();
 void loadWorkspace();

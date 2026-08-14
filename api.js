@@ -10,7 +10,8 @@
     const response = await fetch(`${baseUrl}${relativePath}`, requestOptions);
     let payload = {};
     try { payload = await response.json(); } catch { /* empty response */ }
-    if (response.status === 401 && canRefresh && !path.startsWith('/auth/')) {
+    const skipRefresh = path.includes('/auth/') || path.includes('/admin/me');
+    if (response.status === 401 && canRefresh && !skipRefresh) {
       try { await request('/auth/refresh', { method: 'POST' }, false); return request(path, options, false); } catch { /* keep original auth error */ }
     }
     if (!response.ok) {

@@ -20,8 +20,11 @@ $('#adminSendOtp').addEventListener('click', async () => {
     $('#adminOtpStep').hidden = false;
     $('#adminAuthMessage').textContent = response.devCode ? `Development code: ${response.devCode}` : `Code sent to ${response.maskedDestination}.`;
     $('#adminOtp').focus();
-  } catch (error) { toast(error.message || 'Unable to send verification code.', 'error'); }
-  finally { setLoading(button, false); }
+  } catch (error) {
+    if (error.code === 'SMS_NOT_CONFIGURED') toast('BulkSMSBD is not configured. Add BULKSMSBD_API_KEY and BULKSMSBD_SENDER_ID in Render Environment, then redeploy.', 'error');
+    else if (error.code === 'EMAIL_NOT_CONFIGURED') toast('SMTP email is not configured. Add SMTP settings in Render Environment, then redeploy.', 'error');
+    else toast(error.message || 'Unable to send verification code.', 'error');
+  } finally { setLoading(button, false); }
 });
 $('#adminLoginForm').addEventListener('submit', async event => {
   event.preventDefault();

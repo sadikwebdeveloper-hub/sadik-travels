@@ -507,7 +507,7 @@ $('#requestOtpBtn')?.addEventListener('click', async () => {
     $('#authNote').textContent = `Code sent to ${response.maskedDestination}. It expires in 5 minutes.`;
     if (response.devCode) $('#authNote').textContent += ` Development code: ${response.devCode}`;
     $('#loginOtp')?.focus();
-  } catch (error) { showToast(error.message || 'Unable to send OTP.', 'error'); }
+  } catch (error) { showToast(error.code === 'SMS_NOT_CONFIGURED' ? 'BulkSMSBD is not configured on the backend.' : error.code === 'EMAIL_NOT_CONFIGURED' ? 'SMTP email is not configured on the backend.' : (error.message || 'Unable to send OTP.'), 'error'); }
 });
 $('#changeIdentityBtn')?.addEventListener('click', () => { otpChallengeId = ''; $('#otpStep').hidden = true; $('#loginOtp').required = false; $('#requestOtpBtn').disabled = false; $('#authNote').textContent = 'We’ll send a secure OTP. Your account is created automatically on first login.'; $('#loginIdentity')?.focus(); });
 $('#loginForm')?.addEventListener('submit', async event => {

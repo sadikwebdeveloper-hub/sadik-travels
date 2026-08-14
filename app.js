@@ -169,10 +169,33 @@ function activateTab(tabName, shouldScroll = false) {
   });
   $$('.nav-links a[data-nav-tab]').forEach(item => item.classList.toggle('active', item.dataset.navTab === tabName));
   $$('.mobile-nav-item[data-nav-tab]').forEach(item => item.classList.toggle('active', item.dataset.navTab === tabName));
+  if (window.innerWidth <= 767) tab.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
   if (shouldScroll) $('#searchPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 $$('.travel-tab').forEach(tab => tab.addEventListener('click', () => activateTab(tab.dataset.target)));
+
+const travelTabScroller = $('#travelTabsShell .travel-tabs');
+const travelTabsShell = $('#travelTabsShell');
+function updateTravelTabEdges() {
+  if (!travelTabScroller || !travelTabsShell) return;
+  const maxScroll = Math.max(0, travelTabScroller.scrollWidth - travelTabScroller.clientWidth);
+  travelTabsShell.classList.toggle('can-scroll-left', travelTabScroller.scrollLeft > 2);
+  travelTabsShell.classList.toggle('can-scroll-right', travelTabScroller.scrollLeft < maxScroll - 2);
+}
+travelTabScroller?.addEventListener('scroll', () => requestAnimationFrame(updateTravelTabEdges), { passive: true });
+travelTabScroller?.addEventListener('wheel', event => {
+  if (window.innerWidth > 767 || !travelTabScroller || travelTabScroller.scrollWidth <= travelTabScroller.clientWidth) return;
+  const horizontal = Math.abs(event.deltaX) >= Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+  const maxScroll = travelTabScroller.scrollWidth - travelTabScroller.clientWidth;
+  const canMove = (horizontal < 0 && travelTabScroller.scrollLeft > 0) || (horizontal > 0 && travelTabScroller.scrollLeft < maxScroll);
+  if (canMove && Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+    event.preventDefault();
+    travelTabScroller.scrollLeft += horizontal;
+  }
+}, { passive: false });
+window.addEventListener('resize', updateTravelTabEdges);
+requestAnimationFrame(updateTravelTabEdges);
 $$('[data-nav-tab]').forEach(link => {
   link.addEventListener('click', (event) => {
     event.preventDefault();

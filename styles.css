@@ -103,3 +103,21 @@ body.sidebar-open{overflow:hidden}
   .amy-sidebar[aria-hidden="true"]{pointer-events:none}
 }
 @media(prefers-reduced-motion:reduce){.slider-track,.card-track{transition:none!important}}
+
+/* Mobile service selector: one horizontally scrollable row, never a clipped multi-item strip. */
+.travel-tabs-shell{position:absolute;left:50%;top:0;transform:translate(-50%,-58%);width:89%;z-index:4;min-width:0}
+.travel-tabs-shell .travel-tabs{position:relative;left:auto;top:auto;transform:none;width:100%;z-index:1}
+.travel-tabs-edge{display:none}
+@media(max-width:767px){
+  .travel-tabs-shell{width:calc(100% - 16px);overflow:hidden;border-radius:var(--radius);isolation:isolate}
+  .travel-tabs-shell .travel-tabs{justify-content:flex-start;align-items:stretch;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:0 14px;scroll-padding-inline:14px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:none}
+  .travel-tabs-shell .travel-tabs::-webkit-scrollbar{display:none;width:0;height:0}
+  .travel-tabs-shell .travel-tab{flex:0 0 clamp(94px,31vw,118px);min-width:clamp(94px,31vw,118px);min-height:74px;padding:11px 8px 9px;font-size:.78rem;line-height:1.2;gap:6px;white-space:nowrap}
+  .travel-tabs-shell .travel-tab svg{font-size:1.35rem;flex:none}
+  .travel-tabs-shell .travel-tab span{display:block;text-align:center}
+  .travel-tabs-edge{display:block;position:absolute;z-index:3;top:0;bottom:0;width:30px;pointer-events:none;opacity:0;transition:opacity .2s ease}
+  .travel-tabs-edge-left{left:0;background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.92) 30%,rgba(255,255,255,0) 100%)}
+  .travel-tabs-edge-right{right:0;background:linear-gradient(270deg,#fff 0%,rgba(255,255,255,.92) 30%,rgba(255,255,255,0) 100%)}
+  .travel-tabs-shell.can-scroll-left .travel-tabs-edge-left,.travel-tabs-shell.can-scroll-right .travel-tabs-edge-right{opacity:1}
+}
+@media(prefers-reduced-motion:reduce){.travel-tabs-shell .travel-tabs{scroll-behavior:auto}}

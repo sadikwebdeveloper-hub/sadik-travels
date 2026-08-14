@@ -67,7 +67,7 @@ async function loadTours() {
 }
 async function loadSettings() {
   const response = await api('/api/v1/admin/settings');
-  (response.settings || []).forEach(item => { const field = document.querySelector(`[data-setting="${item.key}"]`); if (!field) return; if (field.type === 'checkbox') field.checked = item.value === '' || item.value === 'true'; else field.value = item.secret ? (item.masked || '') : (item.value || ''); if (item.secret && item.configured) field.placeholder = 'Configured — leave unchanged to keep'; });
+  (response.settings || []).forEach(item => { const field = document.querySelector(`[data-setting="${item.key}"]`); if (!field) return; if (field.type === 'checkbox') field.checked = item.value === '' || item.value === 'true'; else field.value = item.secret ? (item.masked || '') : (item.value || ''); if (item.key === 'brand_logo_url' && item.value) document.querySelectorAll('[data-brand-logo]').forEach(image => { image.src = item.value; }); if (item.secret && item.configured) field.placeholder = 'Configured — leave unchanged to keep'; });
 }
 async function saveSettings(event) {
   event.preventDefault();

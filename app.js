@@ -24,6 +24,7 @@ async function applySiteSettings() {
   try {
     const response = await apiRequest('/site/settings');
     const features = response.features || {};
+    if (response.logoUrl) document.querySelectorAll('[data-brand-logo]').forEach(image => { image.src = response.logoUrl; });
     const featureTargets = ['flights', 'hotels', 'homes', 'visa', 'tours', 'esim'];
     featureTargets.forEach(name => {
       const enabled = features[name] !== false;
@@ -141,7 +142,6 @@ $$('[data-nav-tab]').forEach(link => {
     event.preventDefault();
     activateTab(link.dataset.navTab, true);
     closeSidebar();
-    closeMobileMore();
   });
 });
 
@@ -559,15 +559,6 @@ function closeSidebar() {
   $('#menuToggle')?.setAttribute('aria-expanded', 'false');
 }
 $('#menuToggle')?.addEventListener('click', () => $('#amySidebar').classList.contains('open') ? closeSidebar() : openSidebar());
-function closeMobileMore() { const sheet = $('#mobileMoreSheet'); if (!sheet) return; sheet.hidden = true; $('#mobileMoreBtn')?.setAttribute('aria-expanded', 'false'); }
-function openMobileMore() { const sheet = $('#mobileMoreSheet'); if (!sheet) return; sheet.hidden = false; $('#mobileMoreBtn')?.setAttribute('aria-expanded', 'true'); }
-$('#mobileMoreBtn')?.addEventListener('click', () => { const sheet = $('#mobileMoreSheet'); sheet?.hidden ? openMobileMore() : closeMobileMore(); });
-$('#mobileMoreClose')?.addEventListener('click', closeMobileMore);
-$('#mobileMoreSheet')?.addEventListener('click', event => { if (event.target === $('#mobileMoreSheet')) closeMobileMore(); });
-$('#mobileBottomLogin')?.addEventListener('click', () => { closeMobileMore(); currentUser ? void openAccount() : openLogin(); });
-$('#mobileMoreSupport')?.addEventListener('click', () => { closeMobileMore(); openChat(); });
-$('#mobileMoreNotifications')?.addEventListener('click', async () => { closeMobileMore(); if (currentUser) { await loadNotifications(); openNotificationModal(); } else openLogin(); });
-$('#mobileMoreOffers')?.addEventListener('click', () => { closeMobileMore(); $('#offers')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 $('#sidebarClose')?.addEventListener('click', closeSidebar);
 $('#pageBackdrop')?.addEventListener('click', closeSidebar);
 

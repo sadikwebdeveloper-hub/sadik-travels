@@ -93,3 +93,5 @@ The admin console includes an encrypted integration settings workspace for:
 - Brand and support contact fields
 
 Secret values are encrypted with AES-256-GCM using `SETTINGS_MASTER_KEY`; admin responses return only a masked value. The admin console also includes role management for customer, manager and admin users, plus SMS/email test actions.
+
+Product visibility flags are stored in SQLite (`feature_flights`, `feature_hotels`, `feature_homes`, `feature_visa`, `feature_tours`, `feature_esim`) and exposed through `/api/v1/site/settings`. The storefront hides disabled products from desktop, phone bottom navigation, More menu, and search tabs without a frontend rebuild.

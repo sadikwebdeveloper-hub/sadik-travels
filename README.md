@@ -90,7 +90,7 @@ The Render service serves both frontend and backend from the same origin, so no 
 
 ## Admin integrations and notifications
 
-The admin console contains a secure integrations workspace for SSLCommerz, bKash, BulkSMSBD, SMTP email, live travel providers, brand contact fields, role management, and provider test actions. Secret values are encrypted with `SETTINGS_MASTER_KEY` and displayed masked after saving.
+The admin console contains a secure integrations workspace for SSLCommerz, bKash, BulkSMSBD, SMTP email, live travel providers, brand contact fields, role management, product visibility toggles for Flights, Hotels, Homes, Visa, Tours and eSIM, and provider test actions. Secret values are encrypted with `SETTINGS_MASTER_KEY` and displayed masked after saving.
 
 Admin users can also send website notifications, SMS, and email from `/admin`. Signed-in users see website notifications under the notification bell.
 

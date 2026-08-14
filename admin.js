@@ -67,12 +67,12 @@ async function loadTours() {
 }
 async function loadSettings() {
   const response = await api('/api/v1/admin/settings');
-  (response.settings || []).forEach(item => { const field = document.querySelector(`[data-setting="${item.key}"]`); if (!field) return; field.value = item.secret ? (item.masked || '') : (item.value || ''); if (item.secret && item.configured) field.placeholder = 'Configured — leave unchanged to keep'; });
+  (response.settings || []).forEach(item => { const field = document.querySelector(`[data-setting="${item.key}"]`); if (!field) return; if (field.type === 'checkbox') field.checked = item.value === '' || item.value === 'true'; else field.value = item.secret ? (item.masked || '') : (item.value || ''); if (item.secret && item.configured) field.placeholder = 'Configured — leave unchanged to keep'; });
 }
 async function saveSettings(event) {
   event.preventDefault();
   const payload = {};
-  $$('[data-setting]').forEach(field => { if (field.value && field.value !== SECRET_MASK) payload[field.dataset.setting] = field.value; });
+  $$('[data-setting]').forEach(field => { if (field.type === 'checkbox') payload[field.dataset.setting] = field.checked ? 'true' : 'false'; else if (field.value && field.value !== SECRET_MASK) payload[field.dataset.setting] = field.value; });
   const button = $('#saveSettingsBtn'); setLoading(button, true);
   try { await api('/api/v1/admin/settings', { method: 'PUT', body: JSON.stringify(payload) }); $('#settingsStatus').textContent = 'Saved securely'; $('#settingsSaveMessage').textContent = 'Settings saved'; toast('Integration settings saved securely.', 'success'); await loadSettings(); }
   catch (error) { toast(error.message || 'Unable to save settings.', 'error'); }

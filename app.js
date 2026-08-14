@@ -20,6 +20,26 @@ const API_BASE = appConfig.apiBase || '';
 
 const apiRequest = (path, options = {}, canRefresh = true) => window.SadikApi.request(path, options, canRefresh);
 
+async function applySiteSettings() {
+  try {
+    const response = await apiRequest('/site/settings');
+    const features = response.features || {};
+    const featureTargets = ['flights', 'hotels', 'homes', 'visa', 'tours', 'esim'];
+    featureTargets.forEach(name => {
+      const enabled = features[name] !== false;
+      document.querySelectorAll(`.travel-tab[data-target="${name}"], [data-nav-tab="${name}"], #${name}`).forEach(element => {
+        if (element.classList.contains('tab-pane')) element.hidden = !enabled;
+        else element.style.display = enabled ? '' : 'none';
+      });
+    });
+    const activePane = document.querySelector('.tab-pane.active');
+    if (activePane && features[activePane.id] === false) {
+      const next = featureTargets.find(name => features[name] !== false && document.getElementById(name));
+      if (next) activateTab(next);
+    }
+  } catch { /* Feature flags fail open for the public shell. */ }
+}
+
 function showToast(message, type = '') {
   const region = $('#toastRegion');
   const toast = document.createElement('div');
@@ -83,7 +103,8 @@ $$('[data-step]').forEach(button => {
     const stateKey = key === 'adult' ? 'adults' : key === 'child' ? 'children' : key === 'infant' ? 'infant' : key;
     const [min, max] = limits[key];
     state[stateKey] = Math.max(min, Math.min(max, state[stateKey] + direction));
-    updatePassengerSummary();
+    void applySiteSettings();
+updatePassengerSummary();
   });
 });
 

@@ -222,6 +222,10 @@ export function buildApp() {
     res.status(201).json({ ticket: { id: ticket.id, status: ticket.status, createdAt: ticket.createdAt } });
   });
 
+  if (!config.serveStatic) {
+    app.get('/', (_req, res) => res.json({ service: 'Sadik Travels backend', status: 'online', health: '/api/healthz', ready: '/api/readyz' }));
+  }
+
   // Serve the UI only when this process is the combined local/Docker app. Vercel can run API-only.
   if (config.serveStatic) {
     app.get('/admin', (_req, res) => res.sendFile(path.join(config.publicDir, 'admin.html')));

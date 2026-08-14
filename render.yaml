@@ -11,6 +11,18 @@ services:
         value: 20.20.2
       - key: NODE_ENV
         value: production
+      - key: APP_ORIGIN
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: SETTINGS_MASTER_KEY
+        sync: false
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
       - key: SERVE_STATIC
         value: true
       - key: SQLITE_PATH

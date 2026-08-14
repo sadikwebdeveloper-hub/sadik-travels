@@ -1,8 +1,18 @@
 import { validateConfig, config } from './config.js';
 import { buildApp } from './app.js';
+import { bootstrapSuperAdmin } from './admin-bootstrap.js';
 
 validateConfig();
 const { app, store } = buildApp();
+try {
+  const created = await bootstrapSuperAdmin(store);
+  if (created) console.log('Super admin bootstrap completed from deployment secrets');
+} catch (error) {
+  console.error(error instanceof Error ? error.message : 'Super admin bootstrap failed');
+  store.close();
+  process.exit(1);
+}
+
 const server = app.listen(config.port, config.host, () => console.log(`Sadik Travels listening on http://${config.host}:${config.port}`));
 
 const shutdown = async (signal: string) => {

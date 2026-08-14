@@ -17,15 +17,17 @@ http://localhost:8787
 http://localhost:8787/admin
 ```
 
-Use `DATA_MODE` no longer; SQLite is the only database layer. Configure:
+SQLite is the only database layer. Configure:
 
 ```env
 SQLITE_PATH=./data/sadik.sqlite
-ADMIN_IDENTITIES=01713000000
+ADMIN_IDENTITIES=
 DEV_OTP_ECHO=true
 ```
 
-`DEV_OTP_ECHO=true` is only for local development when BulkSMSBD is not configured. Use `false` in production.
+`DEV_OTP_ECHO=true` is only for local development when a real SMS provider is not configured. Use `false` in production.
+
+For deployments without an interactive console, set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` in the deployment secret store before the first start. The application creates the super admin against the configured SQLite database, stores only a password hash, and does not overwrite an existing password automatically. Remove those two bootstrap variables after the first successful deployment. Never put the password in source code or a start command.
 
 ## Project structure
 
@@ -41,6 +43,7 @@ DEV_OTP_ECHO=true
 ├── src/                    # Node.js + TypeScript backend
 │   ├── app.ts
 │   ├── index.ts
+│   ├── admin-bootstrap.ts  # Optional first-run admin bootstrap
 │   ├── store.ts            # SQLite database and repository methods
 │   ├── providers.ts        # Travel, payment, SMS and email providers
 │   ├── security.ts

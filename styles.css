@@ -73,3 +73,15 @@
 .chat-bubble .chat-badge{right:-8px;top:-8px;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.24)}
 @keyframes chatDance{0%,100%{transform:translateY(0) rotate(0deg)}8%{transform:translateY(-3px) rotate(-8deg)}16%{transform:translateY(0) rotate(8deg)}24%{transform:translateY(-2px) rotate(-6deg)}32%{transform:translateY(0) rotate(4deg)}42%,88%{transform:translateY(0) rotate(0deg)}94%{transform:translateY(-2px) rotate(-3deg)}}
 @media(prefers-reduced-motion:reduce){.chat-bubble{animation:none}}
+/* Amy-style desktop rail and top search bar. */
+.global-search{position:relative;display:flex;align-items:center;width:245px;height:36px;margin-left:10px;border:1px solid var(--border);border-radius:6px;background:#fff;overflow:visible}.global-search input{width:100%;height:100%;border:0;outline:0;padding:7px 40px 7px 12px;color:var(--ink);font-size:.78rem}.global-search button{position:absolute;right:3px;top:3px;width:30px;height:30px;border:0;border-radius:5px;background:var(--brand);color:#fff;display:grid;place-items:center}.global-search button svg{font-size:.95rem}.global-search-suggestions{display:none;position:absolute;z-index:50;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-3);overflow:hidden}.global-search-suggestions.open{display:block}.global-search-suggestions button{position:static;width:100%;height:auto;background:#fff;color:var(--ink);border:0;border-bottom:1px solid var(--border);border-radius:0;display:block;text-align:left;padding:9px 11px;font-size:.75rem}.global-search-suggestions button:hover{background:var(--brand-soft);color:var(--brand)}.nav-app{border:0;background:transparent;color:var(--ink);display:inline-flex;align-items:center;gap:5px;padding:8px 4px;white-space:nowrap}.nav-app svg{color:var(--brand);font-size:1.08rem}.side-action{font-size:.83rem}
+@media(min-width:1024px){
+  .amy-sidebar{top:64px;transform:translateX(0);width:218px;padding:13px 10px;box-shadow:none;border-right:1px solid var(--border);visibility:visible;z-index:900}
+  .amy-sidebar .sidebar-head,.amy-sidebar .sidebar-account{display:none}
+  .amy-sidebar .sidebar-section-label{padding-top:13px}
+  main{padding-left:218px}
+  .chat-bubble{right:20px}
+}
+@media(max-width:1050px) and (min-width:768px){.global-search{width:190px}.nav-app span{display:none}}
+@media(max-width:767px){.global-search{display:none}.nav-app{display:none!important}}
+.global-search-suggestions button strong{display:block;font-size:.76rem}.global-search-suggestions button small{display:block;color:var(--muted);font-size:.67rem;margin-top:2px}

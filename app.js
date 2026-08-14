@@ -171,6 +171,16 @@ $$('input[name="esimScope"]').forEach(input => input.addEventListener('change', 
   }
 }));
 
+const globalSearchCities = [
+  { label: 'Dhaka', detail: 'Bangladesh' }, { label: "Cox's Bazar", detail: 'Bangladesh' }, { label: 'Chattogram', detail: 'Bangladesh' }, { label: 'Dubai', detail: 'United Arab Emirates' }, { label: 'Singapore', detail: 'Singapore' }, { label: 'Bangkok', detail: 'Thailand' }, { label: 'Kuala Lumpur', detail: 'Malaysia' }, { label: 'Male', detail: 'Maldives' }
+];
+function renderGlobalSuggestions(query = '') { const input = $('#globalSearchInput'); const menu = $('#globalSearchSuggestions'); if (!input || !menu) return; const q = query.toLowerCase().trim(); const matches = globalSearchCities.filter(city => `${city.label} ${city.detail}`.toLowerCase().includes(q)).slice(0, 6); menu.innerHTML = matches.map(city => `<button type="button" data-global-city="${escapeHtml(city.label)}"><strong>${escapeHtml(city.label)}</strong><small>${escapeHtml(city.detail)}</small></button>`).join(''); menu.classList.toggle('open', matches.length > 0); $$('[data-global-city]', menu).forEach(button => button.addEventListener('click', () => { input.value = button.dataset.globalCity; menu.classList.remove('open'); activateTab('flights', true); if ($('#toAirport')) $('#toAirport').value = button.dataset.globalCity; })); }
+$('#globalSearchInput')?.addEventListener('focus', () => renderGlobalSuggestions($('#globalSearchInput').value));
+$('#globalSearchInput')?.addEventListener('input', event => renderGlobalSuggestions(event.target.value));
+$('#globalSearch')?.addEventListener('submit', event => { event.preventDefault(); const value = $('#globalSearchInput').value.trim(); if (!value) return; activateTab('flights', true); if ($('#toAirport')) $('#toAirport').value = value; $('#globalSearchSuggestions')?.classList.remove('open'); });
+$('#appBtn')?.addEventListener('click', () => $('#appTitle')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+document.addEventListener('click', event => { if (!event.target.closest('.global-search')) $('#globalSearchSuggestions')?.classList.remove('open'); });
+
 $('#swapAirports')?.addEventListener('click', () => {
   const from = $('#fromAirport');
   const to = $('#toAirport');
@@ -551,6 +561,7 @@ function openSidebar() {
   $('#menuToggle').setAttribute('aria-expanded', 'true');
 }
 function closeSidebar() {
+  if (window.innerWidth >= 1024) return;
   const sidebar = $('#amySidebar');
   if (!sidebar) return;
   sidebar.classList.remove('open');

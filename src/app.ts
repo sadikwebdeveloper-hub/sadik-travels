@@ -49,7 +49,8 @@ export function buildApp() {
   app.use(pinoHttp({ level: config.logLevel, redact: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'] }));
   app.use(requestContext());
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-  app.use(cors({ origin: (origin, callback) => { if (!origin || config.corsOrigins.includes(origin)) callback(null, true); else callback(new AppError(403, 'CORS_DENIED', 'Origin is not allowed')); }, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'] }));
+  const corsMiddleware = cors({ origin: (origin, callback) => { if (!origin || config.corsOrigins.includes(origin)) callback(null, true); else callback(new AppError(403, 'CORS_DENIED', 'Origin is not allowed')); }, credentials: true, methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'] });
+  app.use((req, res, next) => { const origin = req.get('origin'); let sameOrigin = !origin; if (origin) { try { sameOrigin = new URL(origin).host === req.get('host'); } catch { /* invalid origins are handled by CORS */ } } if (sameOrigin) return next(); return corsMiddleware(req, res, next); });
   app.use(express.json({ limit: '1mb', verify: (req, _res, buffer) => { (req as any).rawBody = Buffer.from(buffer); } }));
   app.use(cookieParser());
   app.use(rateLimit('global', 300, 60));

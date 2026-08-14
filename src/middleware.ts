@@ -42,7 +42,7 @@ export function requireAdmin(store: Store): RequestHandler {
       const session = await store.findSessionById(claims.sid);
       if (!session || session.revokedAt || new Date(session.expiresAt) <= new Date() || session.userId !== claims.sub) throw new AppError(401, 'SESSION_INVALID', 'Your admin session has expired');
       const user = await store.findUserById(claims.sub);
-      if (!user || !['admin', 'manager'].includes(user.role) || user.status !== 'active') throw new AppError(403, 'ADMIN_REQUIRED', 'Admin access is required');
+      if (!user || !['admin', 'manager', 'super_admin'].includes(user.role) || user.status !== 'active') throw new AppError(403, 'ADMIN_REQUIRED', 'Admin access is required');
       req.auth = claims; req.user = user; next();
     } catch (error) { next(error); }
   };

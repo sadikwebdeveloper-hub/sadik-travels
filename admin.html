@@ -22,6 +22,7 @@
           <button type="button" class="admin-primary" id="adminSendOtp">Send verification code</button>
           <div id="adminOtpStep" hidden><label><span>Verification code</span><input id="adminOtp" inputmode="numeric" maxlength="6" placeholder="Enter 6 digit code" /></label><button type="submit" class="admin-primary">Verify admin access</button></div>
         </form>
+        <div class="admin-auth-divider"><span>or secure password login</span></div><form id="adminPasswordForm"><label><span>Super admin email</span><input id="adminPasswordIdentity" type="email" placeholder="admin@example.com" autocomplete="username" required /></label><label><span>Password</span><input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" required /></label><button type="submit" class="admin-secondary admin-password-button">Sign in with password</button></form>
         <small id="adminAuthMessage">Admin access is granted only to identities in the server ADMIN_IDENTITIES allowlist.</small>
       </section>
 

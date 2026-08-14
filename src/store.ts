@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { decryptSecret, encryptSecret, maskSecret } from './secrets.js';
 
 export type Channel = 'sms' | 'email';
-export type User = { id: string; phone?: string; email?: string; fullName?: string; status: 'active' | 'blocked' | 'pending'; role: 'customer' | 'manager' | 'admin'; createdAt: string; updatedAt: string };
+export type User = { id: string; phone?: string; email?: string; fullName?: string; status: 'active' | 'blocked' | 'pending'; role: 'customer' | 'manager' | 'admin' | 'super_admin'; createdAt: string; updatedAt: string };
 export type Tour = { id: string; slug: string; title: string; country: string; tourType: string; destinations: string[]; durationDays: number; durationNights: number; description: string; imageUrl: string; priceBdt: number; status: 'draft' | 'published' | 'archived'; featured: boolean; createdBy?: string; createdAt: string; updatedAt: string };
 export type TourFilters = { q?: string; country?: string; tourType?: string; status?: Tour['status'] | 'all'; maxPrice?: number; sort?: 'newest' | 'price_asc' | 'price_desc' };
 export type CreateTour = Omit<Tour, 'id' | 'createdAt' | 'updatedAt'>;
@@ -43,7 +43,7 @@ const notificationFromRow = (r: Row): Notification => ({ id: r.id, userId: r.use
 
 export interface Store {
   health(): Promise<boolean>; close(): void;
-  findUserByIdentity(identity: string): Promise<User | undefined>; findUserById(id: string): Promise<User | undefined>; listUsers(): Promise<User[]>; createUser(input: CreateUser): Promise<User>; setUserRole(id: string, role: User['role']): Promise<User | undefined>;
+  findUserByIdentity(identity: string): Promise<User | undefined>; getPasswordHash(identity: string): Promise<string | undefined>; setPasswordHash(id: string, hash: string): Promise<void>; findUserById(id: string): Promise<User | undefined>; listUsers(): Promise<User[]>; createUser(input: CreateUser): Promise<User>; setUserRole(id: string, role: User['role']): Promise<User | undefined>;
   createOtp(input: CreateOtp): Promise<OtpChallenge>; findOtp(id: string): Promise<OtpChallenge | undefined>; incrementOtpAttempts(id: string): Promise<OtpChallenge | undefined>; consumeOtp(id: string): Promise<void>; countRecentOtpRequests(identity: string, since: Date): Promise<number>;
   createSession(input: CreateSession): Promise<Session>; findSessionById(id: string): Promise<Session | undefined>; findSessionByRefreshJti(jti: string): Promise<Session | undefined>; revokeSession(id: string): Promise<void>;
   createBooking(input: CreateBooking): Promise<Booking>; updateBooking(id: string, patch: Partial<Pick<Booking, 'status' | 'providerRef' | 'response'>>): Promise<Booking | undefined>; findBooking(id: string, userId?: string): Promise<Booking | undefined>; listBookings(userId: string): Promise<Booking[]>;
@@ -55,7 +55,7 @@ export interface Store {
 
 const schema = `
 PRAGMA foreign_keys = ON;
-CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, phone TEXT UNIQUE, email TEXT UNIQUE, full_name TEXT, status TEXT NOT NULL DEFAULT 'active', role TEXT NOT NULL DEFAULT 'customer', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, phone TEXT UNIQUE, email TEXT UNIQUE, full_name TEXT, status TEXT NOT NULL DEFAULT 'active', role TEXT NOT NULL DEFAULT 'customer', password_hash TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS otp_challenges (id TEXT PRIMARY KEY, identity TEXT NOT NULL, channel TEXT NOT NULL, code_hash TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL DEFAULT 5, expires_at TEXT NOT NULL, consumed_at TEXT, request_ip TEXT, created_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS otp_identity_created_idx ON otp_challenges(identity, created_at);
 CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, refresh_jti TEXT UNIQUE NOT NULL, user_agent TEXT, ip TEXT, expires_at TEXT NOT NULL, revoked_at TEXT, created_at TEXT NOT NULL);
@@ -76,13 +76,15 @@ const SECRET_SETTING_KEYS = new Set(['payment_webhook_secret','sslcommerz_store_
 
 export class SQLiteStore implements Store {
   private db: Database.Database;
-  constructor() { fs.mkdirSync(path.dirname(config.sqlitePath), { recursive: true }); this.db = new Database(config.sqlitePath); this.db.pragma('journal_mode = WAL'); this.db.pragma('foreign_keys = ON'); this.db.exec(schema); }
+  constructor() { fs.mkdirSync(path.dirname(config.sqlitePath), { recursive: true }); this.db = new Database(config.sqlitePath); this.db.pragma('journal_mode = WAL'); this.db.pragma('foreign_keys = ON'); this.db.exec(schema); try { this.db.exec('ALTER TABLE users ADD COLUMN password_hash TEXT'); } catch { /* Existing database already has the column. */ } }
   async health() { this.db.prepare('SELECT 1').get(); return true; }
   close() { this.db.close(); }
   async findUserByIdentity(identity: string) { const r = this.db.prepare('SELECT * FROM users WHERE phone = ? OR email = ? LIMIT 1').get(identity, identity) as Row | undefined; return r ? userFromRow(r) : undefined; }
+  async getPasswordHash(identity: string) { const r = this.db.prepare('SELECT password_hash FROM users WHERE phone=? OR email=? LIMIT 1').get(identity, identity) as Row | undefined; return r?.password_hash ?? undefined; }
+  async setPasswordHash(id: string, hash: string) { this.db.prepare('UPDATE users SET password_hash=?,updated_at=? WHERE id=?').run(hash, now(), id); }
   async findUserById(id: string) { const r = this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as Row | undefined; return r ? userFromRow(r) : undefined; }
   async listUsers() { return (this.db.prepare("SELECT * FROM users WHERE status='active' ORDER BY created_at DESC").all() as Row[]).map(userFromRow); }
-  async createUser(input: CreateUser) { const time = now(); const user: User = { id: randomUUID(), phone: input.channel === 'sms' ? input.identity : undefined, email: input.channel === 'email' ? input.identity : undefined, fullName: input.fullName, status: 'active', role: input.role ?? 'customer', createdAt: time, updatedAt: time }; this.db.prepare('INSERT INTO users(id,phone,email,full_name,status,role,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(user.id, user.phone ?? null, user.email ?? null, user.fullName ?? null, user.status, user.role, time, time); return user; }
+  async createUser(input: CreateUser) { const time = now(); const user: User = { id: randomUUID(), phone: input.channel === 'sms' ? input.identity : undefined, email: input.channel === 'email' ? input.identity : undefined, fullName: input.fullName, status: 'active', role: input.role ?? 'customer', createdAt: time, updatedAt: time }; this.db.prepare('INSERT INTO users(id,phone,email,full_name,status,role,password_hash,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(user.id, user.phone ?? null, user.email ?? null, user.fullName ?? null, user.status, user.role, null, time, time); return user; }
   async setUserRole(id: string, role: User['role']) { this.db.prepare('UPDATE users SET role=?,updated_at=? WHERE id=?').run(role, now(), id); return this.findUserById(id); }
   async createOtp(input: CreateOtp) { const item = { ...input, createdAt: now() }; this.db.prepare('INSERT INTO otp_challenges(id,identity,channel,code_hash,attempts,max_attempts,expires_at,consumed_at,request_ip,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)').run(item.id,item.identity,item.channel,item.codeHash,item.attempts,item.maxAttempts,item.expiresAt,item.consumedAt ?? null,item.requestIp ?? null,item.createdAt); return item; }
   async findOtp(id: string) { const r = this.db.prepare('SELECT * FROM otp_challenges WHERE id=?').get(id) as Row | undefined; return r ? otpFromRow(r) : undefined; }

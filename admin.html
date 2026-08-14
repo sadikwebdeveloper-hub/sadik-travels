@@ -14,16 +14,28 @@
     <main class="admin-main">
       <section class="admin-login-card" id="adminLoginCard">
         <div class="admin-lock">◆</div>
-        <span class="admin-eyebrow">Restricted workspace</span>
-        <h1>Go Get Tour admin</h1>
-        <p>Manage tour packages, pricing, destinations and publication status.</p>
-        <form id="adminLoginForm">
-          <label><span>Admin mobile number or email</span><input id="adminIdentity" autocomplete="username" placeholder="01XXXXXXXXX or email" required /></label>
-          <button type="button" class="admin-primary" id="adminSendOtp">Send verification code</button>
-          <div id="adminOtpStep" hidden><label><span>Verification code</span><input id="adminOtp" inputmode="numeric" maxlength="6" placeholder="Enter 6 digit code" /></label><button type="submit" class="admin-primary">Verify admin access</button></div>
-        </form>
-        <div class="admin-auth-divider"><span>or secure password login</span></div><form id="adminPasswordForm"><label><span>Super admin email</span><input id="adminPasswordIdentity" type="email" placeholder="admin@example.com" autocomplete="username" required /></label><label><span>Password</span><input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" required /></label><button type="submit" class="admin-secondary admin-password-button">Sign in with password</button></form>
-        <small id="adminAuthMessage">Admin access is granted only to identities in the server ADMIN_IDENTITIES allowlist.</small>
+        <span class="admin-eyebrow">Step-by-step secure access</span>
+        <h1>Sadik Travels Admin</h1>
+        <p>Use your super-admin email and password to open the management console.</p>
+        <div class="admin-login-step" id="passwordLoginStep">
+          <div class="admin-step-label"><span>1</span><strong>Account credentials</strong></div>
+          <form id="adminPasswordForm">
+            <label><span>Super admin email</span><input id="adminPasswordIdentity" type="email" placeholder="admin@example.com" autocomplete="username" required /></label>
+            <label><span>Password</span><input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" required /></label>
+            <button type="submit" class="admin-primary admin-password-button">Continue securely</button>
+          </form>
+          <button type="button" class="admin-link-button" id="showOtpLogin">Use OTP login instead</button>
+        </div>
+        <div class="admin-login-step" id="otpLoginStep" hidden>
+          <div class="admin-step-label"><span>2</span><strong>One-time verification</strong></div>
+          <form id="adminLoginForm">
+            <label><span>Admin phone or email</span><input id="adminIdentity" autocomplete="username" placeholder="017XXXXXXXX or email" required /></label>
+            <button type="button" class="admin-primary" id="adminSendOtp">Send verification code</button>
+            <div id="adminOtpStep" hidden><label><span>Verification code</span><input id="adminOtp" inputmode="numeric" maxlength="6" placeholder="Enter 6 digit code" /></label><button type="submit" class="admin-primary">Verify admin access</button></div>
+          </form>
+          <button type="button" class="admin-link-button" id="backToPassword">Back to password login</button>
+        </div>
+        <small id="adminAuthMessage">Create the first super admin securely from the project root with <code>npm run admin:create</code>. Passwords are hashed and never stored in source code.</small>
       </section>
 
       <section class="admin-workspace" id="adminWorkspace" hidden>

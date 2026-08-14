@@ -36,7 +36,9 @@ $('#adminLoginForm').addEventListener('submit', async event => {
   finally { setLoading(button, false); }
 });
 $('#logoutBtn').addEventListener('click', async () => { await api('/api/v1/auth/logout', { method: 'POST' }).catch(() => undefined); location.reload(); });
-$('#adminPasswordForm').addEventListener('submit', async event => { event.preventDefault(); const button = event.submitter || $('#adminPasswordForm button[type="submit"]'); setLoading(button, true); try { await api('/api/v1/auth/password-login', { method: 'POST', body: JSON.stringify({ identity: $('#adminPasswordIdentity').value.trim(), password: $('#adminPassword').value }) }); await loadWorkspace(); } catch (error) { toast(error.message || 'Invalid super admin credentials.', 'error'); } finally { setLoading(button, false); } });
+$('#adminPasswordForm').addEventListener('submit', async event => { event.preventDefault(); const button = event.submitter || $('#adminPasswordForm button[type="submit"]'); setLoading(button, true); try { await api('/api/v1/auth/password-login', { method: 'POST', body: JSON.stringify({ identity: $('#adminPasswordIdentity').value.trim(), password: $('#adminPassword').value }) }); await loadWorkspace(); } catch (error) { toast(error.code === 'ADMIN_LOGIN_INVALID' ? 'Invalid admin credentials. Run npm run admin:create to create or reset the super admin.' : (error.message || 'Invalid super admin credentials.'), 'error'); } finally { setLoading(button, false); } });
+$('#showOtpLogin').addEventListener('click', () => { $('#passwordLoginStep').hidden = true; $('#otpLoginStep').hidden = false; $('#adminIdentity').focus(); });
+$('#backToPassword').addEventListener('click', () => { $('#otpLoginStep').hidden = true; $('#passwordLoginStep').hidden = false; });
 
 async function loadWorkspace() {
   try {

@@ -85,3 +85,4 @@
 @media(max-width:1050px) and (min-width:768px){.global-search{width:190px}.nav-app span{display:none}}
 @media(max-width:767px){.global-search{display:none}.nav-app{display:none!important}}
 .global-search-suggestions button strong{display:block;font-size:.76rem}.global-search-suggestions button small{display:block;color:var(--muted);font-size:.67rem;margin-top:2px}
+@media(min-width:1024px){.site-footer{margin-left:218px}}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sadik Travels | Online Travel Agency</title>
   <meta name="description" content="Book flights, hotels, homes, visa services and eSIMs with Sadik Travels." />
-  <link rel="icon" type="image/png" href="assets/images__favicon-32x32.png" />
+  <link rel="icon" type="image/png" href="assets/sadik-travels-favicon-chat.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-api-base="/api/v1" data-live-api="true">
@@ -349,7 +349,7 @@
     </div>
   </footer>
 
-  <button class="chat-bubble" id="chatBubble" aria-label="Open Sadik Travels Support"><img src="assets/sadik-travels-chat.png" alt="Sadik Travels Chat" /><span class="chat-badge">1</span></button>
+  <button class="chat-bubble" id="chatBubble" aria-label="Open Sadik Travels Support"><img src="assets/sadik-travels-favicon-chat.png" alt="Sadik Travels Chat" /><span class="chat-badge">1</span></button>
 
   <div class="modal" id="genericModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden><div class="modal-card"><button class="modal-close" data-close-modal aria-label="Close"><svg><use href="#i-close"></use></svg></button><div id="modalContent"></div></div></div>
   <div class="modal" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" hidden><div class="modal-card login-card"><button class="modal-close" data-close-modal aria-label="Close"><svg><use href="#i-close"></use></svg></button><div class="modal-logo"><img data-brand-logo src="assets/sadik-travels-logo.png?v=3" alt="Sadik Travels" /></div><h2 id="loginTitle">Welcome back</h2><p class="modal-subtitle">Login securely with a one-time verification code.</p><form id="loginForm"><label class="modal-field"><span>Mobile number or email</span><input type="text" id="loginIdentity" placeholder="01XXXXXXXXX or email" autocomplete="username" required /></label><button class="btn btn-primary full-btn" id="requestOtpBtn" type="button">Send verification code</button><div id="otpStep" hidden><label class="modal-field"><span>Verification code</span><input type="text" id="loginOtp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6 digit code" autocomplete="one-time-code" /></label><button class="btn btn-primary full-btn" id="verifyOtpBtn" type="submit">Verify &amp; Login</button><button class="text-btn full-btn" id="changeIdentityBtn" type="button">Use a different number or email</button></div><div class="login-options"><label><input type="checkbox" /> Remember this device</label><button type="button" class="text-btn" id="forgotPassword">Need help?</button></div><div class="login-divider"><span>or</span></div><button type="button" class="btn btn-outline full-btn" id="createAccount">Continue as a new traveller</button></form><p class="auth-note" id="authNote">We’ll send a secure OTP. Your account is created automatically on first login.</p></div></div>

@@ -60,7 +60,7 @@ async function applyPublicContent() {
     const banners = items.filter(item => item.type === 'banner' && item.imageUrl);
     const bannerTrack = $('#bannerTrack');
     $$('[data-slider-prev="banners"],[data-slider-next="banners"]').forEach(button => { button.hidden = !banners.length; });
-    if (bannerTrack) { bannerTrack.innerHTML = banners.length ? banners.map(item => `<a class="banner-slide" href="#offers"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><span class="banner-copy"><small>Sadik Travels</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.subtitle || '')}</em></span></a>`).join('') : empty('No published offers yet', 'Promotional banners will appear here after an admin publishes them.'); state.bannerIndex = 0; bindPromotionalInteractions(bannerTrack); updateBannerSlider(); }
+    if (bannerTrack) { bannerTrack.innerHTML = banners.length ? banners.map(item => `<a class="banner-slide" data-live-banner="true" href="${escapeHtml(item.metadata?.ctaUrl || '#offers')}" target="${item.metadata?.external ? '_blank' : '_self'}" rel="${item.metadata?.external ? 'noopener' : ''}"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><span class="banner-copy"><small>Sadik Travels</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.subtitle || '')}</em></span></a>`).join('') : empty('No published offers yet', 'Promotional banners will appear here after an admin publishes them.'); state.bannerIndex = 0; bindPromotionalInteractions(bannerTrack); updateBannerSlider(); }
     const destinations = items.filter(item => item.type === 'destination' && item.imageUrl);
     const destinationTrack = $('#destinationTrack');
     $$('[data-card-prev="destinations"],[data-card-next="destinations"]').forEach(button => { button.hidden = !destinations.length; });
@@ -705,7 +705,7 @@ function openHotelDetails(title) {
 function bindPromotionalInteractions(scope = document) {
   $$('.travel-card', scope).forEach(card => { if (card.dataset.interactionBound) return; card.dataset.interactionBound = 'true'; card.addEventListener('click', event => { event.preventDefault(); openHotelDetails(card.dataset.cardTitle || card.textContent.trim()); }); });
   $$('.destination-card', scope).forEach(card => { if (card.dataset.interactionBound) return; card.dataset.interactionBound = 'true'; card.addEventListener('click', event => { event.preventDefault(); showToast(`Destination selected: ${card.dataset.destination}.`); activateTab('flights', true); $('#toAirport').value = card.dataset.destination; }); });
-  $$('.banner-slide', scope).forEach(slide => { if (slide.dataset.interactionBound) return; slide.dataset.interactionBound = 'true'; slide.addEventListener('click', event => { event.preventDefault(); showToast(`${slide.querySelector('img')?.alt || 'Offer'} selected.`); }); });
+  $$('.banner-slide', scope).forEach(slide => { if (slide.dataset.liveBanner || slide.dataset.interactionBound) return; slide.dataset.interactionBound = 'true'; slide.addEventListener('click', event => { event.preventDefault(); showToast(`${slide.querySelector('img')?.alt || 'Offer'} selected.`); }); });
 }
 bindPromotionalInteractions();
 

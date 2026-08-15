@@ -49,7 +49,7 @@ export type CreateCampaign = Omit<Campaign,'id'|'totalRecipients'|'queuedCount'|
 export type UpdateCampaign = Partial<Omit<CreateCampaign,'createdBy'>>;
 export type CampaignQueueItem = CampaignRecipient & { recipient?: User; campaign?: Campaign };
 export type SettingPatch = Record<string, string | undefined>;
-export type ContentType = 'homepage' | 'destination' | 'hotel' | 'home' | 'visa' | 'esim' | 'offer' | 'airline' | 'banner' | 'faq' | 'company';
+export type ContentType = 'homepage' | 'destination' | 'hotel' | 'home' | 'visa' | 'esim' | 'offer' | 'airline' | 'banner' | 'faq' | 'company' | 'umrah_fare' | 'umrah_package' | 'holiday_package' | 'medical_tourism' | 'card_offer' | 'airline_offer' | 'explore' | 'app';
 export type ContentStatus = 'draft' | 'published' | 'archived';
 export type ContentItem = { id: string; type: ContentType; slug: string; title: string; subtitle?: string; description?: string; imageUrl?: string; mediaId?: string; metadata: Record<string, unknown>; status: ContentStatus; sortOrder: number; createdBy?: string; createdAt: string; updatedAt: string };
 export type ContentFilters = { type?: ContentType | 'all'; status?: ContentStatus | 'all'; q?: string; includeArchived?: boolean };
@@ -195,7 +195,15 @@ const DEFAULT_NAVIGATION: Array<Omit<CreateNavItem,'id'>> = [
   { groupName:'Security', label:'Audit Logs', route:'/admin/audit-logs', icon:'activity', permission:'audit_view', sortOrder:113, visible:true, enabled:true },
   { groupName:'Marketing', label:'Campaigns', route:'/admin/campaigns', icon:'megaphone', permission:'notifications_send', sortOrder:120, visible:true, enabled:true },
   { groupName:'Marketing', label:'Campaign Templates', route:'/admin/campaigns/templates', icon:'message', permission:'notifications_send', sortOrder:121, visible:true, enabled:true },
-  { groupName:'People', label:'Travel Agents', route:'/admin/travel-agents', icon:'users', permission:'content_manage', sortOrder:130, visible:true, enabled:true }
+  { groupName:'People', label:'Travel Agents', route:'/admin/travel-agents', icon:'users', permission:'content_manage', sortOrder:130, visible:true, enabled:true },
+  { groupName:'Offers', label:'Special Umrah Fare', route:'/admin/content?type=umrah_fare', icon:'plane', permission:'content_manage', sortOrder:140, visible:true, enabled:true },
+  { groupName:'Offers', label:'Umrah Packages', route:'/admin/content?type=umrah_package', icon:'map', permission:'content_manage', sortOrder:141, visible:true, enabled:true },
+  { groupName:'Offers', label:'Holiday Packages', route:'/admin/content?type=holiday_package', icon:'globe', permission:'content_manage', sortOrder:142, visible:true, enabled:true },
+  { groupName:'Offers', label:'Medical Tourism', route:'/admin/content?type=medical_tourism', icon:'hospital', permission:'content_manage', sortOrder:143, visible:true, enabled:true },
+  { groupName:'Offers', label:'Card Offers', route:'/admin/content?type=card_offer', icon:'card', permission:'content_manage', sortOrder:144, visible:true, enabled:true },
+  { groupName:'Offers', label:'Airlines Offers', route:'/admin/content?type=airline_offer', icon:'plane', permission:'content_manage', sortOrder:145, visible:true, enabled:true },
+  { groupName:'Explore', label:'Explore', route:'/admin/content?type=explore', icon:'pin', permission:'content_manage', sortOrder:150, visible:true, enabled:true },
+  { groupName:'Website', label:'Sadik App', route:'/admin/content?type=app', icon:'phone', permission:'content_manage', sortOrder:151, visible:true, enabled:true }
 ];
 const SERVICE_DEFINITIONS: Array<{ key: ServiceKey; label: string; icon: string }> = [
   { key: 'flights', label: 'Flights', icon: 'plane' }, { key: 'hotels', label: 'Hotels', icon: 'hotel' }, { key: 'homes', label: 'Homes', icon: 'home' },

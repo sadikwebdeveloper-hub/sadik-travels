@@ -6,7 +6,7 @@
   <title>Sadik Travels | Online Travel Agency</title>
   <meta name="description" content="Book flights, hotels, homes, visa services and eSIMs with Sadik Travels." />
   <link rel="icon" type="image/png" href="/assets/sadik-travels-favicon-chat.png" />
-  <link rel="stylesheet" href="/styles.css?v=8" />
+  <link rel="stylesheet" href="/styles.css?v=9" />
 </head>
 <body data-api-base="/api/v1" data-live-api="true">
   <svg class="svg-sprite" aria-hidden="true" width="0" height="0" focusable="false">
@@ -40,7 +40,7 @@
     <nav class="navbar" aria-label="Main navigation">
       <div class="nav-inner">
         <button class="icon-btn nav-menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false"><svg><use href="#i-menu"></use></svg></button>
-        <a class="brand" href="#top" aria-label="Sadik Travels home"><img data-brand-logo src="/assets/sadik-travels-logo.png?v=3" alt="Sadik Travels online travel agency" /></a>
+        <a class="brand" href="/" data-public-route="/" aria-label="Sadik Travels home"><img data-brand-logo src="/assets/sadik-travels-logo.png?v=3" alt="Sadik Travels online travel agency" /></a>
         <form class="global-search" id="globalSearch"><input id="globalSearchInput" placeholder="Search a city" autocomplete="off" /><button type="submit" aria-label="Search"><svg><use href="#i-search"></use></svg></button><div class="global-search-suggestions" id="globalSearchSuggestions"></div></form>
         <div class="nav-actions">
           <div class="notification-wrap"><button class="nav-notifications" id="notificationBtn" aria-label="Notifications" aria-expanded="false"><svg><use href="#i-bell"></use></svg><span id="notificationCount" hidden>0</span></button><div class="notification-panel" id="notificationPanel" hidden><div class="notification-panel-head"><strong>Notifications</strong><button type="button" id="markNotificationsRead" class="text-btn">Mark all read</button></div><div id="notificationList"><div class="notification-empty">Login to see notifications.</div></div></div></div>
@@ -56,7 +56,7 @@
 
   <aside class="amy-sidebar" id="amySidebar" aria-label="Browse travel products" aria-hidden="true">
     <div class="sidebar-head">
-      <a class="sidebar-brand" href="#top"><img data-brand-logo src="/assets/sadik-travels-logo.png?v=3" alt="Sadik Travels" /></a>
+      <a class="sidebar-brand" href="/" data-public-route="/"><img data-brand-logo src="/assets/sadik-travels-logo.png?v=3" alt="Sadik Travels" /></a>
       <button class="icon-btn" id="sidebarClose" aria-label="Close menu"><svg><use href="#i-close"></use></svg></button>
     </div>
     <div class="sidebar-account">
@@ -65,21 +65,21 @@
       <button class="sidebar-login" id="sidebarLogin">Login</button>
     </div>
     <div class="sidebar-section-label">Travel</div>
-    <a href="#flights" class="side-link" data-nav-tab="flights"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Flights<span class="side-arrow">›</span></a>
-    <a href="#hotels" class="side-link" data-nav-tab="hotels"><span class="side-icon"><svg><use href="#i-hotel"></use></svg></span>Hotels<span class="side-arrow">›</span></a>
-    <a href="#homes" class="side-link" data-nav-tab="homes"><span class="side-icon"><svg><use href="#i-home"></use></svg></span>Homes<span class="side-arrow">›</span></a>
-    <a href="#visa" class="side-link" data-nav-tab="visa"><span class="side-icon"><svg><use href="#i-passport"></use></svg></span>Visa services<span class="side-arrow">›</span></a>
-    <a href="#tours" class="side-link" data-nav-tab="tours"><span class="side-icon"><svg><use href="#i-map"></use></svg></span>Go Get Tour<span class="side-arrow">›</span></a>
-    <a href="#esim" class="side-link" data-nav-tab="esim"><span class="side-icon"><svg><use href="#i-sim"></use></svg></span>eSIM<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-award"></use></svg></span>Special Umrah Fare<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-map"></use></svg></span>Umrah Packages<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Holiday Packages<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-hotel"></use></svg></span>Medical Tourism<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-check"></use></svg></span>Card Offers<span class="side-arrow">›</span></a>
-    <a href="#serviceContent" class="side-link side-action"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Airlines Offers<span class="side-arrow">›</span></a>
-    <a href="#destinations" class="side-link side-action"><span class="side-icon"><svg><use href="#i-location"></use></svg></span>Explore<span class="side-arrow">›</span></a>
-    <a href="#agents" class="side-link side-action"><span class="side-icon"><svg><use href="#i-user"></use></svg></span>Travel Agents<span class="side-arrow">›</span></a>
-    <a href="#app" class="side-link side-action"><span class="side-icon"><svg><use href="#i-phone"></use></svg></span>Sadik App<span class="side-arrow">›</span></a>
+    <a href="/flights" class="side-link" data-public-route="/flights"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Flights<span class="side-arrow">›</span></a>
+    <a href="/hotels" class="side-link" data-public-route="/hotels"><span class="side-icon"><svg><use href="#i-hotel"></use></svg></span>Hotels<span class="side-arrow">›</span></a>
+    <a href="/homes" class="side-link" data-public-route="/homes"><span class="side-icon"><svg><use href="#i-home"></use></svg></span>Homes<span class="side-arrow">›</span></a>
+    <a href="/visa" class="side-link" data-public-route="/visa"><span class="side-icon"><svg><use href="#i-passport"></use></svg></span>Visa services<span class="side-arrow">›</span></a>
+    <a href="/tours" class="side-link" data-public-route="/tours"><span class="side-icon"><svg><use href="#i-map"></use></svg></span>Go Get Tour<span class="side-arrow">›</span></a>
+    <a href="/esim" class="side-link" data-public-route="/esim"><span class="side-icon"><svg><use href="#i-sim"></use></svg></span>eSIM<span class="side-arrow">›</span></a>
+    <a href="/special-umrah-fare" class="side-link side-action" data-public-route="/special-umrah-fare"><span class="side-icon"><svg><use href="#i-award"></use></svg></span>Special Umrah Fare<span class="side-arrow">›</span></a>
+    <a href="/umrah-packages" class="side-link side-action" data-public-route="/umrah-packages"><span class="side-icon"><svg><use href="#i-map"></use></svg></span>Umrah Packages<span class="side-arrow">›</span></a>
+    <a href="/holiday-packages" class="side-link side-action" data-public-route="/holiday-packages"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Holiday Packages<span class="side-arrow">›</span></a>
+    <a href="/medical-tourism" class="side-link side-action" data-public-route="/medical-tourism"><span class="side-icon"><svg><use href="#i-hotel"></use></svg></span>Medical Tourism<span class="side-arrow">›</span></a>
+    <a href="/card-offers" class="side-link side-action" data-public-route="/card-offers"><span class="side-icon"><svg><use href="#i-check"></use></svg></span>Card Offers<span class="side-arrow">›</span></a>
+    <a href="/airline-offers" class="side-link side-action" data-public-route="/airline-offers"><span class="side-icon"><svg><use href="#i-plane"></use></svg></span>Airlines Offers<span class="side-arrow">›</span></a>
+    <a href="/explore" class="side-link side-action" data-public-route="/explore"><span class="side-icon"><svg><use href="#i-location"></use></svg></span>Explore<span class="side-arrow">›</span></a>
+    <a href="/travel-agents" class="side-link side-action" data-public-route="/travel-agents"><span class="side-icon"><svg><use href="#i-user"></use></svg></span>Travel Agents<span class="side-arrow">›</span></a>
+    <a href="/sadik-app" class="side-link side-action" data-public-route="/sadik-app"><span class="side-icon"><svg><use href="#i-phone"></use></svg></span>Sadik App<span class="side-arrow">›</span></a>
     <div class="sidebar-section-label">Manage</div>
     <button class="side-link side-button" id="trackBookingBtn"><span class="side-icon"><svg><use href="#i-search"></use></svg></span>Track booking<span class="side-arrow">›</span></button>
     <button class="side-link side-button" id="supportSideBtn"><span class="side-icon"><svg><use href="#i-headset"></use></svg></span>Sadik Travels Support<span class="side-arrow">›</span></button>
@@ -298,6 +298,13 @@
       </div>
     </section>
 
+    <section class="content-section tour-preview-section" id="tourPreview" aria-labelledby="tourPreviewTitle">
+      <div class="container panel-block section-bg">
+        <div class="section-heading"><div><h2 id="tourPreviewTitle">Go Get Tour</h2><p>Discover published tour packages from Sadik Travels.</p></div><a class="btn btn-outline" href="/tours" data-public-route="/tours">View all tours</a></div>
+        <div class="tour-preview-grid" id="tourPreviewGrid"><div class="public-content-empty"><strong>No published tours yet</strong><span>Tour packages will appear after they are published in Admin.</span></div></div>
+      </div>
+    </section>
+
     <section class="content-section service-content-section" id="serviceContent" aria-labelledby="serviceContentTitle">
       <div class="container panel-block section-bg">
         <div class="section-heading"><div><h2 id="serviceContentTitle">Featured travel services</h2><p>Explore current offers, packages and specialist services published by Sadik Travels.</p></div></div>
@@ -313,12 +320,14 @@
     </section>
   </main>
 
+  <div id="publicRouteRoot" class="public-route-root" hidden></div>
+
   <footer class="site-footer" id="footer">
     <div class="container panel-block footer-inner">
       <div class="footer-top">
         <div class="footer-about"><img data-brand-logo src="/assets/sadik-travels-logo.png?v=3" alt="Sadik Travels" /><p>Sadik Travels connects customers with live travel providers, curated tour packages and customer support through one secure platform.</p><div class="footer-social"><a href="#contact" aria-label="Facebook contact">f</a><a href="#contact" aria-label="Instagram contact">◎</a><a href="#contact" aria-label="Youtube contact">▶</a><a href="#contact" aria-label="LinkedIn contact">in</a></div></div>
         <div class="footer-links"><h3>Company</h3><a href="#contact">About Sadik Travels</a><a href="#contact">Contact Us</a><a href="#contact">Careers</a><a href="#contact">Terms &amp; Conditions</a><a href="#contact">Privacy Policy</a></div>
-        <div class="footer-links"><h3>Services</h3><a href="#flights">Flight Booking</a><a href="#hotels">Hotel Booking</a><a href="#visa">Visa Processing</a><a href="#esim">eSIM</a><a href="#offers">Travel Offers</a></div>
+        <div class="footer-links"><h3>Services</h3><a href="/flights" data-public-route="/flights">Flight Booking</a><a href="/hotels" data-public-route="/hotels">Hotel Booking</a><a href="/visa" data-public-route="/visa">Visa Processing</a><a href="/esim" data-public-route="/esim">eSIM</a><a href="/offers" data-public-route="/offers">Travel Offers</a></div>
         <div class="footer-links footer-contact" id="contact"><h3>Contact Sadik Travels</h3><address><p>Reach our support team through the contacts configured by an authorized admin.</p><p><a data-support-phone href="#contact">Support phone</a></p><p><a data-support-email href="#contact">Support email</a></p></address></div>
       </div>
       <div class="footer-offices"><div><h3>Service status</h3><p>Live travel providers, SQLite persistence and notification delivery are configured through the backend environment.</p></div><div><h3>Customer support</h3><p>Support channels are managed from the Sadik Travels admin workspace.</p></div><div><h3>Tour catalogue</h3><p>All Go Get Tour packages are created and edited by authorized admins.</p></div><div><h3>Privacy</h3><p>Customer data is handled through authenticated, server-side API routes.</p></div></div>
@@ -336,6 +345,6 @@
 
   <script>window.APP_CONFIG={apiBase:'/api/v1',liveApi:true};</script>
   <script src="/api.js?v=3"></script>
-  <script src="/app.js?v=8"></script>
+  <script src="/app.js?v=9"></script>
 </body>
 </html>

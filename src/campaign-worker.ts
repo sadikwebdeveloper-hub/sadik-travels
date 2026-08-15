@@ -14,7 +14,7 @@ export class CampaignWorker {
   constructor(private readonly store: Store, private readonly messaging: MessagingProvider) {}
   start() { if (this.timer) return; this.timer = setInterval(() => void this.tick(), 2000); this.timer.unref(); void this.tick(); }
   stop() { if (this.timer) clearInterval(this.timer); this.timer = undefined; }
-  private async tick() { if (this.running) return; this.running = true; try { await this.store.activateDueCampaigns(); await this.store.recoverStaleCampaignRecipients(); const items = await this.store.listQueuedCampaignRecipients(10); for (const item of items) { const claimed=await this.store.claimCampaignRecipient(item.id); if (claimed) await this.process({ ...item, ...claimed }); } } finally { this.running = false; } }
+  private async tick() { if (this.running) return; this.running = true; try { await this.store.activateDueCampaigns(); await this.store.recoverStaleCampaignRecipients(); const items = await this.store.listQueuedCampaignRecipients(10); for (const item of items) { const claimed=await this.store.claimCampaignRecipient(item.id); if (claimed) await this.process({ ...item, ...claimed }); } } catch (error) { console.error('Campaign worker tick failed', error instanceof Error ? error.message : 'unknown error'); } finally { this.running = false; } }
   private async process(item: CampaignQueueItem) {
     const user = item.recipient; const campaign = item.campaign;
     if (!user || !campaign) { await this.store.updateCampaignRecipient(item.id, { status: 'failed', error: 'Recipient or campaign is unavailable' }); await this.store.recalculateCampaign(item.campaignId); return; }

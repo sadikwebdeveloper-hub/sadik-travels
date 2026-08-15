@@ -31,6 +31,11 @@ export const config = {
   superAdminEmail: env('SUPER_ADMIN_EMAIL'),
   superAdminPassword: env('SUPER_ADMIN_PASSWORD'),
   settingsMasterKey: env('SETTINGS_MASTER_KEY', 'local-only-settings-master-key-change-me'),
+  cloudinaryCloudName: env('CLOUDINARY_CLOUD_NAME'),
+  cloudinaryApiKey: env('CLOUDINARY_API_KEY'),
+  cloudinaryApiSecret: env('CLOUDINARY_API_SECRET'),
+  mediaMaxUploadBytes: Number(env('MEDIA_MAX_UPLOAD_BYTES', String(8 * 1024 * 1024))),
+  mediaTimeoutMs: Number(env('MEDIA_TIMEOUT_MS', '15000')),
   smsProvider: env('SMS_PROVIDER', 'custom_gateway') as 'custom_gateway' | 'bulksmsbd',
   // Provider credentials intentionally default to empty. Local OTP can use DEV_OTP_ECHO without sending data anywhere.
   smsGatewayUrl: env('SMS_GATEWAY_URL'),
@@ -63,7 +68,10 @@ export function validateConfig() {
   if ((config.superAdminEmail && !config.superAdminPassword) || (!config.superAdminEmail && config.superAdminPassword)) throw new Error('SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be provided together');
   if (config.superAdminPassword && config.superAdminPassword.length < 12) throw new Error('SUPER_ADMIN_PASSWORD must be at least 12 characters');
   if (!Number.isInteger(config.smtpPort) || config.smtpPort < 1 || config.smtpPort > 65535) throw new Error('SMTP_PORT must be a valid TCP port');
+  if (!Number.isInteger(config.mediaMaxUploadBytes) || config.mediaMaxUploadBytes < 1_000_000 || config.mediaMaxUploadBytes > 25_000_000) throw new Error('MEDIA_MAX_UPLOAD_BYTES must be between 1MB and 25MB');
+  if (!Number.isInteger(config.mediaTimeoutMs) || config.mediaTimeoutMs < 1000 || config.mediaTimeoutMs > 120000) throw new Error('MEDIA_TIMEOUT_MS must be between 1000 and 120000');
   if (config.isProduction) {
+    if (!config.cloudinaryCloudName || !config.cloudinaryApiKey || !config.cloudinaryApiSecret) throw new Error('CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are required in production');
     if (config.jwtSecret.length < 32 || config.jwtSecret.includes('local-only')) throw new Error('JWT_SECRET must be a strong production secret');
     if (config.settingsMasterKey.length < 32 || config.settingsMasterKey.includes('local-only')) throw new Error('SETTINGS_MASTER_KEY must be a strong production secret');
     if (!['lax', 'strict', 'none'].includes(config.cookieSameSite)) throw new Error('COOKIE_SAMESITE must be lax, strict, or none');

@@ -46,6 +46,7 @@ For deployments without an interactive console, set `SUPER_ADMIN_EMAIL` and `SUP
 │   ├── admin-bootstrap.ts  # Optional first-run admin bootstrap
 │   ├── store.ts            # SQLite database and repository methods
 │   ├── providers.ts        # Travel, payment, SMS and email providers
+│   ├── media.ts            # Cloudinary upload/delete/transform service
 │   ├── security.ts
 │   ├── middleware.ts
 │   └── rate-limit.ts
@@ -85,6 +86,9 @@ Set the required environment variables in Render, including:
 - `JWT_SECRET`
 - `SETTINGS_MASTER_KEY`
 - `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` for first-run bootstrap, then remove them
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
 - `ADMIN_IDENTITIES`
 - `SMS_PROVIDER`
 - `SMS_GATEWAY_URL`
@@ -122,6 +126,7 @@ The admin console is a single authenticated application with logical history rou
 /admin/tours
 /admin/esim
 /admin/content
+/admin/media
 /admin/customers
 /admin/customers/:id
 /admin/payments
@@ -134,6 +139,10 @@ The admin console is a single authenticated application with logical history rou
 ```
 
 Service visibility is stored in SQLite-backed settings with `active`, `hidden`, `maintenance`, and `archived` states. Hiding or archiving a service updates customer-facing visibility but never deletes booking or catalogue records. Admin API permissions are enforced server-side for finance, support, content, service visibility, settings, user management, and audit operations.
+
+## Persistent media
+
+Permanent admin image uploads use Cloudinary through the centralized `src/media.ts` service. The service validates image magic bytes, accepts JPEG/PNG/WEBP only, enforces the configured size limit, stores metadata in the `media_assets` table, and uses organized folders under `sadik-travels/`. Existing local `uploads/` files are not used for production media. Cloudinary API secrets are server-only.
 
 ## Checks
 

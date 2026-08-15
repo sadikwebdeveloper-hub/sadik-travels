@@ -53,34 +53,26 @@ async function applySiteSettings() {
 }
 
 async function applyPublicContent() {
+  const empty = (title, message) => `<div class="public-content-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>`;
   try {
     const response = await apiRequest('/site/content');
     const items = response.content || [];
     const banners = items.filter(item => item.type === 'banner' && item.imageUrl);
-    if (banners.length) {
-      const track = $('#bannerTrack');
-      track.innerHTML = banners.map(item => `<a class="banner-slide" href="#offers"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><span class="banner-copy"><small>Sadik Travels</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.subtitle || '')}</em></span></a>`).join('');
-      state.bannerIndex = 0;
-      bindPromotionalInteractions(track);
-      updateBannerSlider();
-    }
+    const bannerTrack = $('#bannerTrack');
+    $$('[data-slider-prev="banners"],[data-slider-next="banners"]').forEach(button => { button.hidden = !banners.length; });
+    if (bannerTrack) { bannerTrack.innerHTML = banners.length ? banners.map(item => `<a class="banner-slide" href="#offers"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><span class="banner-copy"><small>Sadik Travels</small><strong>${escapeHtml(item.title)}</strong><em>${escapeHtml(item.subtitle || '')}</em></span></a>`).join('') : empty('No published offers yet', 'Promotional banners will appear here after an admin publishes them.'); state.bannerIndex = 0; bindPromotionalInteractions(bannerTrack); updateBannerSlider(); }
     const destinations = items.filter(item => item.type === 'destination' && item.imageUrl);
-    if (destinations.length) {
-      const track = $('#destinationTrack');
-      track.innerHTML = destinations.map(item => `<a class="destination-card" href="#destination" data-destination="${escapeHtml(item.title)}"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><strong>${escapeHtml(item.title)}</strong></a>`).join('');
-      bindPromotionalInteractions(track);
-      updateCardSlider('destinations');
-    }
+    const destinationTrack = $('#destinationTrack');
+    $$('[data-card-prev="destinations"],[data-card-next="destinations"]').forEach(button => { button.hidden = !destinations.length; });
+    if (destinationTrack) { destinationTrack.innerHTML = destinations.length ? destinations.map(item => `<a class="destination-card" href="#destination" data-destination="${escapeHtml(item.title)}"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /><strong>${escapeHtml(item.title)}</strong></a>`).join('') : empty('No published destinations yet', 'Destinations will appear after content is published in admin.'); bindPromotionalInteractions(destinationTrack); updateCardSlider('destinations'); }
     const hotels = items.filter(item => item.type === 'hotel' && item.imageUrl);
-    if (hotels.length) {
-      const track = $('#hotelTrack');
-      track.innerHTML = hotels.map(item => `<a class="travel-card" href="#hotel-details" data-card-title="${escapeHtml(item.title)}"><div class="card-image"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /></div><div class="card-caption">${escapeHtml(item.title)}</div></a>`).join('');
-      bindPromotionalInteractions(track);
-      updateCardSlider('hotels');
-    }
-  } catch { /* Empty content keeps the curated brand shell available. */ }
+    const hotelTrack = $('#hotelTrack');
+    $$('[data-card-prev="hotels"],[data-card-next="hotels"]').forEach(button => { button.hidden = !hotels.length; });
+    if (hotelTrack) { hotelTrack.innerHTML = hotels.length ? hotels.map(item => `<a class="travel-card" href="#hotel-details" data-card-title="${escapeHtml(item.title)}"><div class="card-image"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /></div><div class="card-caption">${escapeHtml(item.title)}</div></a>`).join('') : empty('No published hotels yet', 'Hotel content will appear here after an admin publishes it.'); bindPromotionalInteractions(hotelTrack); updateCardSlider('hotels'); }
+    const transitTrack = $('#transitTrack'); $$('[data-card-prev="transit"],[data-card-next="transit"]').forEach(button => { button.hidden = true; }); if (transitTrack) { transitTrack.innerHTML = empty('No transit hotels yet', 'Airport transit inventory will appear when configured.'); updateCardSlider('transit'); }
+    const airlines = items.filter(item => item.type === 'airline' && item.imageUrl); const airlineTrack = $('#airlineTrack'); if (airlineTrack) airlineTrack.innerHTML = airlines.length ? airlines.map(item => `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" />`).join('') : empty('No partner airlines yet', 'Airline content will appear after it is published in admin.');
+  } catch { /* Empty content keeps the shell available without inventing inventory. */ }
 }
-
 function showToast(message, type = '') {
   const region = $('#toastRegion');
   const toast = document.createElement('div');
@@ -763,12 +755,13 @@ function updateBannerSlider() {
   const track = $('#bannerTrack');
   if (!track) return;
   const slides = $$('.banner-slide', track);
+  const dots = $('#bannerDots');
+  if (!slides.length) { track.style.transform = 'none'; if (dots) dots.innerHTML = ''; return; }
   const visible = visibleCount('banners');
   const max = Math.max(0, slides.length - visible);
   state.bannerIndex = Math.max(0, Math.min(max, state.bannerIndex));
   const slideWidth = slides[0]?.getBoundingClientRect().width || 0;
   track.style.transform = `translateX(-${state.bannerIndex * (slideWidth + 14)}px)`;
-  const dots = $('#bannerDots');
   const pageCount = max + 1;
   dots.innerHTML = Array.from({ length: Math.min(pageCount, 8) }, (_, i) => `<button type="button" aria-label="Go to banner ${i + 1}" class="${i === Math.min(state.bannerIndex, 7) ? 'active' : ''}"></button>`).join('');
   $$('button', dots).forEach((button, i) => button.addEventListener('click', () => { state.bannerIndex = Math.min(i, max); updateBannerSlider(); }));

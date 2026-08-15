@@ -122,3 +122,4 @@ body.sidebar-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.travel-tabs-shell .travel-tabs{scroll-behavior:auto}}
 .travel-tab.service-maintenance{position:relative}.travel-tab.service-maintenance:after{content:"Maintenance";position:absolute;top:3px;right:5px;color:#9b6507;background:#fff5d9;border-radius:8px;padding:1px 4px;font-size:8px;line-height:1.2;font-weight:800;white-space:nowrap}@media(max-width:767px){.travel-tab.service-maintenance:after{top:2px;right:3px;font-size:7px}}
+.public-content-empty{flex:1 0 100%;min-height:150px;display:grid;place-content:center;justify-items:center;gap:5px;padding:28px 18px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:#fbfcfe;color:var(--muted);text-align:center}.public-content-empty strong{color:var(--ink);font-size:.88rem}.public-content-empty span{max-width:360px;font-size:.72rem;line-height:1.45}.airline-track .public-content-empty{min-height:90px;width:100%}

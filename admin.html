@@ -6,7 +6,7 @@
   <meta name="description" content="Sadik Travels operations and management console" />
   <title>Sadik Travels Admin Console</title>
   <link rel="icon" type="image/png" href="assets/sadik-travels-favicon-chat.png" />
-  <link rel="stylesheet" href="admin.css?v=6" />
+  <link rel="stylesheet" href="admin.css?v=7" />
 </head>
 <body>
   <div class="admin-toast-region" id="adminToast" aria-live="polite"></div>
@@ -63,7 +63,7 @@
         <div class="nav-group"><p>Payments</p><a href="/admin/payments" data-route="/admin/payments" data-permission="payments_view"><span data-icon="card"></span><span>Transactions</span></a><a href="/admin/payments?status=pending" data-route="/admin/payments?status=pending" data-permission="payments_view"><span data-icon="clock"></span><span>Payment Intents</span></a><a href="/admin/payments?status=refunded" data-route="/admin/payments?status=refunded" data-permission="payments_view"><span data-icon="refund"></span><span>Refunds</span></a></div>
         <div class="nav-group"><p>Communication</p><a href="/admin/notifications" data-route="/admin/notifications" data-permission="notifications_send"><span data-icon="bell"></span><span>Notifications</span></a><a href="/admin/settings?tab=sms" data-route="/admin/settings?tab=sms" data-permission="settings_manage"><span data-icon="message"></span><span>SMS</span></a><a href="/admin/settings?tab=email" data-route="/admin/settings?tab=email" data-permission="settings_manage"><span data-icon="mail"></span><span>Email</span></a></div>
         <div class="nav-group"><p>Support</p><a href="/admin/support" data-route="/admin/support" data-permission="support_manage"><span data-icon="headset"></span><span>Support Tickets</span></a></div>
-        <div class="nav-group"><p>Website</p><a href="/admin/content?type=homepage" data-route="/admin/content?type=homepage" data-permission="content_manage"><span data-icon="spark"></span><span>Homepage Content</span></a><a href="/admin/services" data-route="/admin/services" data-permission="services_manage"><span data-icon="eye"></span><span>Service Visibility</span></a><a href="/admin/content?type=banner" data-route="/admin/content?type=banner" data-permission="content_manage"><span data-icon="image"></span><span>Banners</span></a><a href="/admin/content?type=destination" data-route="/admin/content?type=destination" data-permission="content_manage"><span data-icon="pin"></span><span>Featured Content</span></a></div>
+        <div class="nav-group"><p>Website</p><a href="/admin/media" data-route="/admin/media" data-permission="content_manage"><span data-icon="image"></span><span>Media Library</span></a><a href="/admin/content?type=homepage" data-route="/admin/content?type=homepage" data-permission="content_manage"><span data-icon="spark"></span><span>Homepage Content</span></a><a href="/admin/services" data-route="/admin/services" data-permission="services_manage"><span data-icon="eye"></span><span>Service Visibility</span></a><a href="/admin/content?type=banner" data-route="/admin/content?type=banner" data-permission="content_manage"><span data-icon="image"></span><span>Banners</span></a><a href="/admin/content?type=destination" data-route="/admin/content?type=destination" data-permission="content_manage"><span data-icon="pin"></span><span>Featured Content</span></a></div>
         <div class="nav-group"><p>Settings</p><a href="/admin/settings?tab=payments" data-route="/admin/settings?tab=payments" data-permission="settings_manage"><span data-icon="settings"></span><span>Payment Gateway</span></a><a href="/admin/settings?tab=sms" data-route="/admin/settings?tab=sms" data-permission="settings_manage"><span data-icon="message"></span><span>SMS Gateway</span></a><a href="/admin/settings?tab=email" data-route="/admin/settings?tab=email" data-permission="settings_manage"><span data-icon="mail"></span><span>Email</span></a><a href="/admin/settings?tab=travel" data-route="/admin/settings?tab=travel" data-permission="settings_manage"><span data-icon="globe"></span><span>Travel API</span></a><a href="/admin/settings?tab=brand" data-route="/admin/settings?tab=brand" data-permission="settings_manage"><span data-icon="brand"></span><span>Brand &amp; Contact</span></a><a href="/admin/settings?tab=features" data-route="/admin/settings?tab=features" data-permission="settings_manage"><span data-icon="toggle"></span><span>Products</span></a></div>
         <div class="nav-group"><p>Security</p><a href="/admin/users" data-route="/admin/users" data-permission="users_manage"><span data-icon="shield"></span><span>Admin Users</span></a><a href="/admin/users" data-route="/admin/users" data-permission="users_manage"><span data-icon="lock"></span><span>Roles &amp; Permissions</span></a><a href="/admin/audit-logs" data-route="/admin/audit-logs" data-permission="audit_view"><span data-icon="activity"></span><span>Audit Logs</span></a></div>
       </nav>
@@ -77,7 +77,7 @@
   </div>
   <div class="admin-modal-root" id="adminModalRoot" hidden></div>
   <script src="assets/vendor/three.min.js"></script>
-  <script src="api.js?v=2"></script>
-  <script src="admin.js?v=6"></script>
+  <script src="api.js?v=3"></script>
+  <script src="admin.js?v=8"></script>
 </body>
 </html>

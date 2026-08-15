@@ -6,18 +6,20 @@
 - Express 5
 - TypeScript
 - Vanilla HTML/CSS/JavaScript frontend
-- SQLite using `better-sqlite3`
+- SQLite using `better-sqlite3` with a Render persistent disk
 - JWT access/refresh sessions
 - HttpOnly cookies
 - Zod validation
 - Helmet security headers
-- Pino logging
+- Pino request/error logging
 - Nodemailer SMTP email delivery
-- BulkSMSBD SMS delivery
+- BulkSMSBD/custom SMS adapters
+- Cloudinary REST media service for permanent image uploads
+- Multer memory storage for bounded multipart processing only
 
 ## Single project layout
 
-Frontend and backend are intentionally in one project. Run from the project root:
+Frontend and backend intentionally run in one project. From the project root:
 
 ```powershell
 npm run dev
@@ -25,73 +27,85 @@ npm run dev
 
 The Express process serves:
 
-- `/` — storefront
-- `/admin` — admin console
-- `/api/v1/*` — backend API
+- `/` — customer storefront
+- `/admin` and `/admin/*` — routed admin console
+- `/api/v1/*` — application API
+- `/healthz` and `/api/health` — health checks
+- `/readyz` and `/api/ready` — database readiness checks
 
 ## Database
 
-SQLite is the only database layer. Tables are created automatically in `src/store.ts`:
+SQLite is the only database layer in the current architecture. Tables are created or migrated additively in `src/store.ts`:
 
 - users
 - OTP challenges
 - sessions
-- bookings
+- bookings and booking events
 - tours
 - payments
-- support tickets
+- support tickets and support messages
 - notifications
+- customer notes
+- content items
+- media assets
 - audit logs
+- encrypted settings
 
-No tour demo rows are seeded. Admins create and edit all tour packages through `/admin`.
+No records are reset or wiped during startup. There are no demo users, tours, bookings, payments, tickets, notifications, or content seeded into the real database.
 
-For Render, attach a persistent disk and set:
+For Render:
 
 ```env
 SQLITE_PATH=/var/data/sadik.sqlite
 ```
 
+A persistent Render disk is required for business data to survive deploys and restarts.
+
 ## API client
 
-Both storefront and admin load `api.js`:
+Both storefront and admin load `api.js` and use `window.SadikApi.request(path, options)`. It provides:
 
-```javascript
-window.SadikApi.request(path, options)
-```
+- same-origin or configured API base handling
+- HttpOnly cookie credentials
+- refresh-session handling
+- JSON and multipart form handling
+- request timeouts
+- consistent network/API errors
 
-It uses same-origin requests, cookies, refresh handling, and consistent API errors.
+## Admin application
 
-## Responsive navigation
+The admin is a routed single-page application with:
 
-At phone widths:
+- responsive fixed sidebar and mobile drawer
+- dashboard KPIs/charts/empty states
+- booking lifecycle, claiming, assignment, notes and history
+- customer directory and details
+- payments and transaction history
+- notifications and delivery history
+- support conversations and assignment
+- tour/content CRUD
+- service visibility states: active, hidden, maintenance, archived
+- Cloudinary media library
+- encrypted integration settings
+- admin roles and server-side permissions
+- audit logs
 
-- Hamburger menu is hidden
-- Bottom navigation is shown
-- Flights, Hotels, Tours, Login, and More are available
-- More opens Homes, Visa, eSIM, Offers, Support, and Notifications
+## Persistent media
+
+Permanent uploads are handled by `src/media.ts`. It validates image magic bytes, permits JPEG/PNG/WEBP, limits memory-backed multipart uploads, uploads to Cloudinary folders under `sadik-travels/`, stores metadata in `media_assets`, and performs safe replace/archive operations. `CLOUDINARY_API_SECRET` is never sent to browser code or stored in SQLite.
 
 ## Render
 
-`render.yaml` configures a single Node web service. Build and start commands are:
+`render.yaml` configures one Node web service:
 
 ```text
-npm ci && npm run build
-npm start
+Build: npm ci --include=dev && npm run build
+Start: npm start
+Health: /healthz
 ```
 
-A persistent Render disk is required for SQLite data to survive deployments.
+Production requires strong JWT/settings secrets, HTTPS cookie/origin configuration, the Render SQLite disk, and Cloudinary credentials for persistent media.
 
-## Admin integrations
+## Degraded external services
 
-The admin console includes an encrypted integration settings workspace for:
-
-- SSLCommerz store ID, password, API URL, validation URL and IPN URL
-- bKash app key, app secret, username, password and base URL
-- SMS gateway URL, API key and sender ID
-- SMTP host, port, user, password and from address
-- Live travel provider URL and API key
-- Brand and support contact fields
-
-Secret values are encrypted with AES-256-GCM using `SETTINGS_MASTER_KEY`; admin responses return only a masked value. The admin console also includes role management for customer, manager and admin users, plus SMS/email test actions.
-
-Product visibility flags are stored in SQLite (`feature_flights`, `feature_hotels`, `feature_homes`, `feature_visa`, `feature_tours`, `feature_esim`) and exposed through `/api/v1/site/settings`. The storefront hides disabled products from desktop, phone bottom navigation, More menu, and search tabs without a frontend rebuild.
+Travel inventory, payment gateways, SMS, SMTP, and Cloudinary are real provider integrations. If credentials are absent or a provider times out, the API returns a controlled unavailable/error response; the application does not generate fake inventory, fake delivery, fake payment success, or fake upload records.

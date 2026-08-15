@@ -4,12 +4,12 @@ import { AppError } from './errors.js';
 import { verifyToken, ACCESS_COOKIE } from './security.js';
 import type { Store, User, UserRole } from './store.js';
 
-export type AdminPermission = 'dashboard:view' | 'bookings:view' | 'bookings:manage' | 'payments:view' | 'payments:manage' | 'customers:view' | 'content:manage' | 'services:manage' | 'notifications:send' | 'support:manage' | 'settings:manage' | 'users:manage' | 'audit:view';
+export type AdminPermission = 'dashboard:view' | 'bookings:view' | 'bookings:manage' | 'payments:view' | 'payments:manage' | 'customers:view' | 'content:manage' | 'services:manage' | 'notifications:send' | 'support:manage' | 'settings:manage' | 'users:manage' | 'audit:view' | 'navigation:manage';
 const ALL_ADMIN_ROLES: UserRole[] = ['admin', 'manager', 'super_admin', 'support', 'content_manager', 'finance'];
 const ROLE_PERMISSIONS: Record<UserRole, AdminPermission[]> = {
   customer: [],
-  super_admin: ['dashboard:view','bookings:view','bookings:manage','payments:view','payments:manage','customers:view','content:manage','services:manage','notifications:send','support:manage','settings:manage','users:manage','audit:view'],
-  admin: ['dashboard:view','bookings:view','bookings:manage','payments:view','payments:manage','customers:view','content:manage','services:manage','notifications:send','support:manage','settings:manage','users:manage','audit:view'],
+  super_admin: ['dashboard:view','bookings:view','bookings:manage','payments:view','payments:manage','customers:view','content:manage','services:manage','notifications:send','support:manage','settings:manage','users:manage','audit:view','navigation:manage'],
+  admin: ['dashboard:view','bookings:view','bookings:manage','payments:view','payments:manage','customers:view','content:manage','services:manage','notifications:send','support:manage','settings:manage','users:manage','audit:view','navigation:manage'],
   manager: ['dashboard:view','bookings:view','bookings:manage','customers:view','notifications:send','support:manage'],
   support: ['dashboard:view','bookings:view','customers:view','notifications:send','support:manage'],
   content_manager: ['dashboard:view','content:manage','services:manage'],

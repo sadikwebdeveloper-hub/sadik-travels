@@ -89,6 +89,9 @@ The admin is a routed single-page application with:
 - encrypted integration settings
 - admin roles and server-side permissions
 - audit logs
+- admin navigation configuration
+- travel agents
+- campaigns, templates, customer segments and campaign recipient queue
 
 ## Persistent media
 

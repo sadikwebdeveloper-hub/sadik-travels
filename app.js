@@ -55,7 +55,7 @@ async function applySiteSettings() {
 async function applyPublicContent() {
   const empty = (title, message) => `<div class="public-content-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>`;
   try {
-    const response = await apiRequest('/site/content');
+    const [response, agentsResponse] = await Promise.all([apiRequest('/site/content'), apiRequest('/site/agents').catch(() => ({ agents: [] }))]);
     const items = response.content || [];
     const banners = items.filter(item => item.type === 'banner' && item.imageUrl);
     const bannerTrack = $('#bannerTrack');
@@ -71,6 +71,7 @@ async function applyPublicContent() {
     if (hotelTrack) { hotelTrack.innerHTML = hotels.length ? hotels.map(item => `<a class="travel-card" href="#hotel-details" data-card-title="${escapeHtml(item.title)}"><div class="card-image"><img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" /></div><div class="card-caption">${escapeHtml(item.title)}</div></a>`).join('') : empty('No published hotels yet', 'Hotel content will appear here after an admin publishes it.'); bindPromotionalInteractions(hotelTrack); updateCardSlider('hotels'); }
     const transitTrack = $('#transitTrack'); $$('[data-card-prev="transit"],[data-card-next="transit"]').forEach(button => { button.hidden = true; }); if (transitTrack) { transitTrack.innerHTML = empty('No transit hotels yet', 'Airport transit inventory will appear when configured.'); updateCardSlider('transit'); }
     const airlines = items.filter(item => item.type === 'airline' && item.imageUrl); const airlineTrack = $('#airlineTrack'); if (airlineTrack) airlineTrack.innerHTML = airlines.length ? airlines.map(item => `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" />`).join('') : empty('No partner airlines yet', 'Airline content will appear after it is published in admin.');
+    const agentGrid = $('#agentGrid'); const agents = agentsResponse.agents || []; if (agentGrid) agentGrid.innerHTML = agents.length ? agents.map(agent => `<article class="agent-card"><div class="agent-photo">${agent.photoUrl ? `<img src="${escapeHtml(agent.photoUrl)}" alt="${escapeHtml(agent.fullName)}" loading="lazy" />` : `<span>${escapeHtml(agent.fullName.split(/\s+/).map(part => part[0]).join('').slice(0,2).toUpperCase())}</span>`}</div><div class="agent-card-body"><h3>${escapeHtml(agent.fullName)}</h3><strong>${escapeHtml(agent.jobTitle || agent.specialization || 'Travel specialist')}</strong><p>${escapeHtml(agent.shortBio || '')}</p>${agent.phone ? `<a href="tel:${escapeHtml(agent.phone)}">${escapeHtml(agent.phone)}</a>` : ''}${agent.email ? `<a href="mailto:${escapeHtml(agent.email)}">${escapeHtml(agent.email)}</a>` : ''}</div></article>`).join('') : empty('No published travel agents yet', 'Team profiles will appear here after an admin publishes them.');
   } catch { /* Empty content keeps the shell available without inventing inventory. */ }
 }
 function showToast(message, type = '') {
@@ -621,12 +622,14 @@ function updateAuthUi(user) {
 }
 async function openAccount() {
   try {
-    const response = await apiRequest('/bookings');
+    const [response, preferencesResponse] = await Promise.all([apiRequest('/bookings'), apiRequest('/account/preferences').catch(() => ({ preferences: {} }))]);
     const bookings = response.bookings || [];
+    const preferences = preferencesResponse.preferences || {};
     const list = bookings.length ? bookings.slice(0, 5).map(item => `<div class="account-booking"><strong>${escapeHtml(item.vertical)}</strong><span>${escapeHtml(item.id)}</span><em>${escapeHtml(item.status)}</em></div>`).join('') : '<div class="result-summary">No bookings yet.</div>';
     const modal = $('#genericModal');
-    $('#modalContent').innerHTML = `<div class="modal-heading"><div class="modal-icon blue">${icon('i-user')}</div><h2 id="modalTitle">My Account</h2></div><p class="modal-subtitle">${escapeHtml(currentUser?.phone || currentUser?.email || 'Signed-in traveller')}</p><div class="account-bookings"><h3>Recent bookings</h3>${list}</div><button class="btn btn-outline full-btn" id="logoutBtn">Logout</button>`;
+    $('#modalContent').innerHTML = `<div class="modal-heading"><div class="modal-icon blue">${icon('i-user')}</div><h2 id="modalTitle">My Account</h2></div><p class="modal-subtitle">${escapeHtml(currentUser?.phone || currentUser?.email || 'Signed-in traveller')}</p><div class="account-bookings"><h3>Recent bookings</h3>${list}</div><form id="preferenceForm" class="account-preferences"><h3>Communication preferences</h3><label><input type="checkbox" name="marketingEmailOptIn" ${preferences.marketingEmailOptIn !== false ? 'checked' : ''} /> Email marketing</label><label><input type="checkbox" name="marketingSmsOptIn" ${preferences.marketingSmsOptIn !== false ? 'checked' : ''} /> SMS marketing</label><label><input type="checkbox" name="marketingInAppOptIn" ${preferences.marketingInAppOptIn !== false ? 'checked' : ''} /> Website notifications</label><button class="btn btn-outline full-btn" type="submit">Save preferences</button></form><button class="btn btn-outline full-btn" id="logoutBtn">Logout</button>`;
     openModal(modal);
+    $('#preferenceForm')?.addEventListener('submit', async event => { event.preventDefault(); const button = event.submitter; button.disabled = true; const form = new FormData(event.currentTarget); try { await apiRequest('/account/preferences', { method: 'PATCH', body: JSON.stringify({ marketingEmailOptIn: form.get('marketingEmailOptIn') === 'on', marketingSmsOptIn: form.get('marketingSmsOptIn') === 'on', marketingInAppOptIn: form.get('marketingInAppOptIn') === 'on' }) }); showToast('Communication preferences saved.', 'success'); } catch (error) { showToast(error.message || 'Unable to save preferences.', 'error'); } finally { button.disabled = false; } });
     $('#logoutBtn')?.addEventListener('click', async () => { await apiRequest('/auth/logout', { method: 'POST' }, false).catch(() => undefined); updateAuthUi(null); closeModal(modal); showToast('You have been logged out.'); });
   } catch (error) { if (error.status === 401) openLogin(); else showToast(error.message || 'Unable to load account.', 'error'); }
 }
